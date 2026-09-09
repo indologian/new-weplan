@@ -163,6 +163,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 				<div className="rounded-lg border border-border bg-card p-6 shadow-sm">
 					<h2 className="text-xl font-bold mb-4">Informasi URL</h2>
 					<div>
+						<label className="block text-sm font-medium">
 						<label htmlFor="slug" className="block text-sm font-medium">
 							Custom Slug (weplan.com/nama-anda)
 						</label>
@@ -194,6 +195,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 					<h2 className="text-xl font-bold mb-4">Mempelai Pria</h2>
 					<div className="space-y-4">
 						<div>
+							<label className="block text-sm font-medium">
 							<label htmlFor="groom_name" className="block text-sm font-medium">
 								Nama Panggilan
 							</label>
@@ -210,6 +212,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 							)}
 						</div>
 						<div>
+							<label className="block text-sm font-medium">Nama Ayah</label>
 							<label htmlFor="groom_father_name" className="block text-sm font-medium">Nama Ayah</label>
 							<input
 								id="groom_father_name"
@@ -219,6 +222,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 							/>
 						</div>
 						<div>
+							<label className="block text-sm font-medium">Nama Ibu</label>
 							<label htmlFor="groom_mother_name" className="block text-sm font-medium">Nama Ibu</label>
 							<input
 								id="groom_mother_name"
@@ -234,6 +238,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 					<h2 className="text-xl font-bold mb-4">Mempelai Wanita</h2>
 					<div className="space-y-4">
 						<div>
+							<label className="block text-sm font-medium">
 							<label htmlFor="bride_name" className="block text-sm font-medium">
 								Nama Panggilan
 							</label>
@@ -250,6 +255,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 							)}
 						</div>
 						<div>
+							<label className="block text-sm font-medium">Nama Ayah</label>
 							<label htmlFor="bride_father_name" className="block text-sm font-medium">Nama Ayah</label>
 							<input
 								id="bride_father_name"
@@ -259,6 +265,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 							/>
 						</div>
 						<div>
+							<label className="block text-sm font-medium">Nama Ibu</label>
 							<label htmlFor="bride_mother_name" className="block text-sm font-medium">Nama Ibu</label>
 							<input
 								id="bride_mother_name"
@@ -274,6 +281,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 					<h2 className="text-xl font-bold mb-4">Teks Undangan</h2>
 					<div className="space-y-4">
 						<div>
+							<label className="block text-sm font-medium">Salam Pembuka</label>
 							<label htmlFor="opening_greeting" className="block text-sm font-medium">Salam Pembuka</label>
 							<textarea
 								id="opening_greeting"
@@ -281,9 +289,11 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 								onBlur={handleBlur}
 								className={fieldClass}
 								rows={3}
+							></textarea>
 							/>
 						</div>
 						<div>
+							<label className="block text-sm font-medium">Teks Doa</label>
 							<label htmlFor="prayer_text" className="block text-sm font-medium">Teks Doa</label>
 							<textarea
 								id="prayer_text"
@@ -291,6 +301,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 								onBlur={handleBlur}
 								className={fieldClass}
 								rows={3}
+							></textarea>
 							/>
 						</div>
 					</div>
