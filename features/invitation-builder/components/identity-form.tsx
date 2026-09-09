@@ -21,6 +21,7 @@ import {
 	fetchSlugAvailability,
 } from "../utils/slug-availability";
 import { EventsForm } from "./events-form";
+import { StoriesForm } from "./stories-form";
 
 function customZodResolver(
 	schema: z.ZodType<Step1IdentityInput>,
@@ -338,6 +339,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 				<>
 					<PhotoUploadBoundary invitationId={invitationId} />
 					<EventsForm invitationId={invitationId} />
+					<StoriesForm invitationId={invitationId} />
 				</>
 			)}
 		</div>

@@ -2,26 +2,32 @@
 
 ## Task
 
-06 — Builder Events
+07 — Builder Story
 
 ## Completed
 
-- Added the architecture-defined event contract and server-side validation for dates, text-based times, paired coordinates, and coordinate ranges.
-- Added authenticated multi-event create, read, update, and delete actions with invitation ownership checks.
-- Bound update, delete, set-main, and reorder operations to both event ID and invitation ID.
-- Normalized `end_time` to `null` server-side whenever `until_finished` is true.
-- Added deterministic, server-authoritative sequential ordering and rejection of duplicate, incomplete, or foreign event ID lists.
-- Added main-event switching that unsets the current main event before setting the verified target event.
-- Added a separate event editor with multiple locations/times, create/edit/delete, reorder controls, and main-event radio selection.
-- Integrated the Task 06 editor into the existing builder only after a persistent invitation ID is available.
+- Added authoritative Zod validation for story content, nullable dates, UUID identifiers, and reorder lists.
+- Added authenticated Couple Story create, read, update, delete, and deterministic complete-set reorder actions.
+- Bound update, delete, image, and reorder operations to both story ID and invitation ID after invitation ownership verification.
+- Added the canonical private story image path `{coupleId}/{invitationId}/stories/{storyId}.webp`.
+- Added signed overwrite upload authorization and separate post-upload canonical-path persistence.
+- Kept `image_path` null until the browser upload succeeds and explicitly calls persistence.
+- Added canonical Storage deletion before deleting a story that has an image.
+- Reused the Task 05 WebP compression utility without modification.
+- Added a separate story editor and mounted it through the existing builder orchestration shell.
 
 ## Files created
 
-- `actions/invitations/events.ts`
-- `actions/invitations/events.test.ts`
-- `validations/event.ts`
-- `validations/event.test.ts`
-- `features/invitation-builder/components/events-form.tsx`
+- `actions/invitations/stories.ts`
+- `actions/invitations/stories.test.ts`
+- `actions/invitations/story-image.ts`
+- `actions/invitations/story-image.test.ts`
+- `actions/invitations/story-test-support.ts`
+- `validations/story.ts`
+- `validations/story.test.ts`
+- `lib/storage/story-image.ts`
+- `lib/storage/story-image.test.ts`
+- `features/invitation-builder/components/stories-form.tsx`
 
 ## Files changed
 
@@ -35,23 +41,23 @@ None added or changed.
 
 ## Migrations
 
-None. Existing `public.wedding_events` schema, ownership RLS, and partial unique index `one_main_event_per_invitation` remain unchanged.
+None. The existing `public.stories` schema and RLS remain unchanged.
 
 ## Tests and validation
 
-- Focused Task 06 tests: pass, 2 files and 20 tests.
-- Full `npm run test`: pass, 19 files and 86 tests.
+- Focused Task 07 tests: pass, 4 files and 18 tests.
+- Full `npm run test`: pass, 23 files and 104 tests.
 - `npm run typecheck`: pass.
-- `npm run lint`: pass, 36 files checked.
-- Targeted read-only Biome check: pass, 6 Task 06 files checked with zero diagnostics.
+- `npm run lint`: pass, 38 files checked.
+- Targeted read-only Biome check: pass, 11 Task 07 files with zero diagnostics.
 - `npm run build`: pass.
 - Scoped `git diff --check`: pass; only a Git line-ending notice was emitted.
-- Credential and dependency/schema scope checks: pass.
+- Actual diff, credential, dependency, schema/RLS, and unrelated-change checks: pass.
 
 ## Known issues
 
-- Set-main uses the safest available server sequence: unset the existing main event, then set the verified target. The operations are not atomic because Task 06 does not authorize an RPC/database function. The existing partial unique index remains final race protection; unique-write failures are returned as controlled generic errors.
-- External dirty files `.gitignore`, `.env.example`, `docs/architecture/agent/CURRENT-TASK.md`, and `docs/architecture/tasks/06-builder-events.md` were explicitly excluded from validation staging and the Task 06 commit.
+- Reorder uses server-authoritative sequential writes after verifying the submitted IDs exactly match the current story set. A concurrent change is rejected before writes when observed by the lookup; the client receives a controlled refresh/retry error for stale or incomplete sets.
+- User-owned changes in `docs/architecture/agent/CURRENT-TASK.md` and `docs/architecture/tasks/07-builder-story.md` are excluded from the Task 07 commit.
 
 ## Blockers
 
@@ -59,7 +65,7 @@ None.
 
 ## Notes for next agent
 
-- Event time values intentionally remain text in persistence.
-- An invitation may temporarily have zero main events while being edited, but never more than one.
-- Reorder requires the complete event ID set for the owned invitation and persists normalized order `0..n-1`.
-- Task 07 has not been started. Do not begin it without explicit authorization.
+- Story dates remain null when omitted; no default date is inferred.
+- Story image upload and image-path persistence are deliberately separate, so failed uploads cannot create fake persisted paths.
+- Story deletion calculates the Storage object path from authenticated ownership values and never trusts the persisted/client path as the deletion target.
+- Task 08 has not been started. Do not begin it without explicit authorization.

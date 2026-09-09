@@ -8,14 +8,15 @@
 - 04-theme-engine: public theme catalog and allowlisted renderer registry, complete Elegant Green reference theme, main-event countdown, and reduced-motion policy.
 - 05-builder-identity: identity draft flow, server-side theme and slug validation, authenticated persistence, and authorized private photo upload.
 - 06-builder-events: authenticated multi-event CRUD, deterministic ordering, per-event location/time data, and single-main-event selection protected by the database partial unique index.
+- 07-builder-story: authenticated Couple Story CRUD, deterministic complete-set ordering, optional dates, and server-authorized private story images with canonical storage paths.
 
 ## Current
 
-Task 06 is complete. Task 07 has not been started.
+Task 07 is complete. Task 08 has not been started.
 
 ## Pending
 
-07-publish-payment through 20-production-hardening.
+08 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -27,7 +28,7 @@ Task 06 is complete. Task 07 has not been started.
 - [x] **04**: Theme Engine
 - [x] **05**: Builder Identity
 - [x] **06**: Builder Event & Content
-- [ ] **07**: Publish & Payment
+- [x] **07**: Builder Story
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
