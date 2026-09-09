@@ -8,7 +8,7 @@
 
 ## Current
 
-Task 05 (Builder Identity) is complete, including audit remediation for safe auth returns, canonical private-storage paths, stable browser auth state, global slug availability, active-theme resolution, and image limits. Task 06 has not been started.
+Tasks 04 and 05 are complete, including their audit remediation. Theme Engine now resolves public theme slugs through source metadata and an allowlisted renderer registry, renders a main-event countdown, and applies the user reduced-motion policy. Task 06 has not been started.
 
 ## Pending
 
@@ -44,6 +44,7 @@ None.
 - Supabase Security Advisor reports one warning for authenticated execution of the architecture-defined `SECURITY DEFINER public.is_admin()` RLS helper. Anonymous execution is explicitly revoked and covered by a negative test.
 - The connected Supabase MCP identity cannot inspect the dedicated development project; Task 03 OAuth state was therefore verified through the authenticated application flow and its RLS-backed profile query.
 - The standard lint script does not include every Task 05 source directory; remediation files were additionally checked with a read-only targeted Biome command.
+- The standard lint script does not include `themes/**` or `types/**`; Task 04 remediation files were additionally checked with a read-only targeted Biome command.
 
 ## Environment Constraints
 

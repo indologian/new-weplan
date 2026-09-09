@@ -1,8 +1,10 @@
 "use client";
 
+import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import type { InvitationThemeProps } from "../types";
 import "./theme.css";
+import { elegantGreenMotionPolicy } from "./animations";
 
 import { Bride } from "./sections/bride";
 import { Events } from "./sections/events";
@@ -20,42 +22,46 @@ import { CoupleStory } from "./sections/story";
 import { Wishes } from "./sections/wishes";
 
 export function ElegantGreenTheme({
-  invitation,
-  invitee,
+	invitation,
+	invitee,
 }: InvitationThemeProps) {
-  const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
 
-  if (!isOpen) {
-    return (
-      <div className="theme-elegant-green">
-        <OpenInvitation
-          invitation={invitation}
-          invitee={invitee}
-          onOpen={() => setIsOpen(true)}
-        />
-      </div>
-    );
-  }
+	if (!isOpen) {
+		return (
+			<MotionConfig reducedMotion={elegantGreenMotionPolicy.reducedMotion}>
+				<div className="theme-elegant-green">
+					<OpenInvitation
+						invitation={invitation}
+						invitee={invitee}
+						onOpen={() => setIsOpen(true)}
+					/>
+				</div>
+			</MotionConfig>
+		);
+	}
 
-  return (
-    <div className="theme-elegant-green">
-      <Hero invitation={invitation} />
-      <Greeting invitation={invitation} />
-      <Groom invitation={invitation} />
-      <Bride invitation={invitation} />
-      <Prayer invitation={invitation} />
-      <Events invitation={invitation} />
-      <Maps invitation={invitation} />
-      {invitation.story && invitation.story.length > 0 && (
-        <CoupleStory invitation={invitation} />
-      )}
-      {invitation.gallery && invitation.gallery.length > 0 && (
-        <Gallery invitation={invitation} />
-      )}
-      <Rsvp invitee={invitee} />
-      <Gift invitation={invitation} />
-      <Wishes invitation={invitation} />
-      <Footer invitation={invitation} />
-    </div>
-  );
+	return (
+		<MotionConfig reducedMotion={elegantGreenMotionPolicy.reducedMotion}>
+			<div className="theme-elegant-green">
+				<Hero invitation={invitation} />
+				<Greeting invitation={invitation} />
+				<Groom invitation={invitation} />
+				<Bride invitation={invitation} />
+				<Prayer invitation={invitation} />
+				<Events invitation={invitation} />
+				<Maps invitation={invitation} />
+				{invitation.story && invitation.story.length > 0 && (
+					<CoupleStory invitation={invitation} />
+				)}
+				{invitation.gallery && invitation.gallery.length > 0 && (
+					<Gallery invitation={invitation} />
+				)}
+				<Rsvp invitee={invitee} />
+				<Gift invitation={invitation} />
+				<Wishes invitation={invitation} />
+				<Footer invitation={invitation} />
+			</div>
+		</MotionConfig>
+	);
 }
