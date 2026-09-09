@@ -1,17 +1,23 @@
 # Task 06 — Builder Events
 
 ## Goal
+
 Implement multi-event CRUD, ordering and one main countdown event.
 
 ## Depends On
+
 05
 
 ## Required Context
+
 - `docs/architecture/reference/DATABASE.md`
+- `docs/architecture/database/schema.sql` — read-only, hanya bagian `wedding_events` dan index/constraint terkait.
+- `docs/architecture/database/indexes.sql` — read-only, hanya index/constraint terkait main event jika diperlukan.
 
 Do not read unrelated reference documents.
 
 ## Allowed Paths
+
 - `features/invitation-builder/**`
 - `actions/invitations/**`
 - `validations/**`
@@ -19,12 +25,15 @@ Do not read unrelated reference documents.
 - `docs/architecture/agent/HANDOFF.md`
 
 ## Do Not Touch
+
 Any unrelated feature, future task, or architecture decision. If a required change falls outside allowed paths, record a BLOCKER and stop that part.
 
 ## Acceptance Criteria
+
 Multiple locations/times work; DB/server enforce at most one main event.
 
 ## Required Validation
+
 - relevant automated/unit/integration tests
 - `typecheck`
 - `lint`
@@ -32,7 +41,9 @@ Multiple locations/times work; DB/server enforce at most one main event.
 - docs/architecture/security/ownership negative tests when data access changes
 
 ## Completion Output
+
 Update:
+
 - `docs/architecture/agent/PROJECT-STATE.md`
 - `docs/architecture/agent/HANDOFF.md`
 

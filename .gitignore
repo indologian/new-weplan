@@ -26,9 +26,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env*.local
-
 # vercel
 .vercel
 
@@ -38,4 +35,18 @@ next-env.d.ts
 
 # scratch folder
 /scratch/
+
+
+# Environment variables
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep example file
+
+!.env.example
+
 
