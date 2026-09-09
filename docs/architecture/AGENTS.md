@@ -57,3 +57,16 @@ Rules:
 - Never run destructive validation against production.
 - Never commit database credentials.
 - If local Supabase is unavailable, use the dedicated remote development project.
+
+## Tooling Scope
+
+`Allowed Paths` berlaku untuk semua bentuk perubahan, termasuk perubahan otomatis oleh tooling.
+
+Rules:
+
+- Formatter, linter dengan `--write` / `--fix` / `--unsafe`, codemod, generator, migration generator, dan autofix hanya boleh menargetkan file yang berada di dalam `Allowed Paths` current task.
+- Jangan menjalankan repository-wide formatter/autofix selama current task kecuali task secara eksplisit mengizinkannya.
+- `typecheck`, read-only lint, tests, dan build boleh membaca seluruh repository selama command tersebut tidak mengubah source files.
+- Jika lint gagal pada file di luar `Allowed Paths`, jangan memperbaikinya. Laporkan sebagai blocker hanya jika kegagalan tersebut benar-benar menghalangi acceptance criteria current task.
+- Temporary script/file harus dibuat hanya jika diperlukan dan wajib dihapus sebelum completion.
+- Sebelum menjalankan command dengan kemampuan menulis file, periksa bahwa seluruh target command berada dalam `Allowed Paths`.
