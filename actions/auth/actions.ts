@@ -11,13 +11,7 @@ import {
 	registerSchema,
 } from "../../lib/auth/schemas";
 import { createClient } from "../../lib/supabase/server";
-
-function getSafeRedirectUrl(callbackUrl?: string | null): string {
-	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
-		return callbackUrl;
-	}
-	return "/dashboard";
-}
+import { getSafeReturnPath } from "./safe-return";
 
 export async function loginAction(
 	_previousState: AuthActionState,
@@ -40,7 +34,7 @@ export async function loginAction(
 	}
 
 	const callbackUrl = formData.get("callbackUrl")?.toString();
-	redirect(getSafeRedirectUrl(callbackUrl));
+	redirect(getSafeReturnPath(callbackUrl));
 }
 
 export async function registerAction(
@@ -84,7 +78,7 @@ export async function registerAction(
 
 	if (data.session) {
 		const callbackUrl = formData.get("callbackUrl")?.toString();
-		redirect(getSafeRedirectUrl(callbackUrl));
+		redirect(getSafeReturnPath(callbackUrl));
 	}
 
 	return {
@@ -97,9 +91,12 @@ export async function googleOAuthAction(formData?: FormData): Promise<void> {
 	const origin = requestHeaders.get("origin") ?? "http://localhost:3000";
 	const supabase = await createClient();
 
-	const callbackUrl = formData?.get("callbackUrl")?.toString();
-	const redirectTo = new URL(`${ origin }/auth/callback`);
-	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
+	const callbackUrl = getSafeReturnPath(
+		formData?.get("callbackUrl")?.toString(),
+		"",
+	);
+	const redirectTo = new URL(`${origin}/auth/callback`);
+	if (callbackUrl) {
 		redirectTo.searchParams.set("callbackUrl", callbackUrl);
 	}
 

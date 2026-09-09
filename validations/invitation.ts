@@ -1,14 +1,16 @@
 import { z } from "zod";
 
+export const invitationSlugSchema = z
+	.string()
+	.min(3, "Slug minimal 3 karakter.")
+	.max(50, "Slug maksimal 50 karakter.")
+	.regex(
+		/^[a-z0-9-]+$/,
+		"Slug hanya boleh berisi huruf kecil, angka, dan strip.",
+	);
+
 export const step1IdentitySchema = z.object({
-	slug: z
-		.string()
-		.min(3, "Slug minimal 3 karakter.")
-		.max(50, "Slug maksimal 50 karakter.")
-		.regex(
-			/^[a-z0-9-]+$/,
-			"Slug hanya boleh berisi huruf kecil, angka, dan strip.",
-		),
+	slug: invitationSlugSchema,
 	groom_name: z.string().min(1, "Nama panggilan mempelai pria wajib diisi."),
 	groom_father_name: z.string().optional(),
 	groom_mother_name: z.string().optional(),

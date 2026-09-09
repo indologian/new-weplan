@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getSafeReturnPath } from "@/actions/auth/safe-return";
 import { ensureCoupleProfile } from "@/lib/auth/profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,9 +30,7 @@ export async function GET(request: NextRequest) {
 		return NextResponse.redirect(loginUrl);
 	}
 
-	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
-		return NextResponse.redirect(new URL(callbackUrl, request.url));
-	}
-
-	return NextResponse.redirect(new URL("/dashboard", request.url));
+	return NextResponse.redirect(
+		new URL(getSafeReturnPath(callbackUrl), request.url),
+	);
 }

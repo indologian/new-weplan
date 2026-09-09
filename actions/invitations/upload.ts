@@ -1,30 +1,39 @@
 "use server";
 
-import { requireAuthenticatedMutation } from "@/lib/auth/authorization";
+import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import {
+	getInvitationPhotoDestination,
+	parseInvitationPhotoType,
+} from "../../lib/storage/invitation-photo";
 
-type UploadType = "cover" | "groom" | "bride";
-
-export async function createUploadUrl(invitationId: string, type: UploadType) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-
-	// Verify ownership of invitation
+async function requireOwnedInvitation(
+	invitationId: string,
+	supabase: Awaited<
+		ReturnType<typeof requireAuthenticatedMutation>
+	>["supabase"],
+	userId: string,
+) {
 	const { data: invitation, error } = await supabase
 		.from("invitations")
 		.select("id")
 		.eq("id", invitationId)
 		.eq("couple_id", userId)
-		.single();
+		.maybeSingle();
 
 	if (error || !invitation) {
 		throw new Error("Tidak memiliki akses ke undangan ini.");
 	}
+}
 
-	let path = "";
-	if (type === "cover") path = `${userId}/${invitationId}/cover/cover.webp`;
-	else if (type === "groom")
-		path = `${userId}/${invitationId}/couple/groom.webp`;
-	else if (type === "bride")
-		path = `${userId}/${invitationId}/couple/bride.webp`;
+export async function createUploadUrl(invitationId: string, type: unknown) {
+	const { supabase, userId } = await requireAuthenticatedMutation();
+	await requireOwnedInvitation(invitationId, supabase, userId);
+	const photoType = parseInvitationPhotoType(type);
+	const { path } = getInvitationPhotoDestination(
+		userId,
+		invitationId,
+		photoType,
+	);
 
 	// Create signed upload URL
 	const { data, error: uploadError } = await supabase.storage
@@ -35,24 +44,25 @@ export async function createUploadUrl(invitationId: string, type: UploadType) {
 		throw new Error("Gagal membuat upload URL.");
 	}
 
-	return { signedUrl: data.signedUrl, path: data.path };
+	return { signedUrl: data.signedUrl };
 }
 
 export async function updateInvitationPhotoPath(
 	invitationId: string,
-	type: UploadType,
-	path: string,
+	type: unknown,
 ) {
 	const { supabase, userId } = await requireAuthenticatedMutation();
-
-	const updateData: Record<string, string> = {};
-	if (type === "cover") updateData.cover_photo_path = path;
-	else if (type === "groom") updateData.groom_photo_path = path;
-	else if (type === "bride") updateData.bride_photo_path = path;
+	await requireOwnedInvitation(invitationId, supabase, userId);
+	const photoType = parseInvitationPhotoType(type);
+	const { column, path } = getInvitationPhotoDestination(
+		userId,
+		invitationId,
+		photoType,
+	);
 
 	const { error } = await supabase
 		.from("invitations")
-		.update(updateData)
+		.update({ [column]: path })
 		.eq("id", invitationId)
 		.eq("couple_id", userId);
 

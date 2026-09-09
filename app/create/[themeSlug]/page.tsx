@@ -1,4 +1,7 @@
-import { IdentityForm } from "@/features/invitation-builder/components/identity-form";
+import { notFound } from "next/navigation";
+import { IdentityForm } from "../../../features/invitation-builder/components/identity-form";
+import { createClient } from "../../../lib/supabase/server";
+import { invitationSlugSchema } from "../../../validations/invitation";
 
 type CreatePageProps = {
 	params: Promise<{ themeSlug: string }>;
@@ -6,6 +9,23 @@ type CreatePageProps = {
 
 export default async function CreatePage({ params }: CreatePageProps) {
 	const { themeSlug } = await params;
+	const parsedThemeSlug = invitationSlugSchema.safeParse(themeSlug);
+
+	if (!parsedThemeSlug.success) {
+		notFound();
+	}
+
+	const supabase = await createClient();
+	const { data: theme, error } = await supabase
+		.from("themes")
+		.select("slug")
+		.eq("slug", parsedThemeSlug.data)
+		.eq("is_active", true)
+		.maybeSingle();
+
+	if (error || !theme) {
+		notFound();
+	}
 
 	return (
 		<div className="max-w-2xl mx-auto py-12 px-4">
@@ -13,7 +33,7 @@ export default async function CreatePage({ params }: CreatePageProps) {
 			<p className="text-muted-foreground mb-8">
 				Langkah 1: Identitas & URL Undangan (Tema: {themeSlug})
 			</p>
-			<IdentityForm themeSlug={themeSlug} />
+			<IdentityForm themeSlug={theme.slug} />
 		</div>
 	);
 }

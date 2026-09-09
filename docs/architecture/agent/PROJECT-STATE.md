@@ -8,7 +8,7 @@
 
 ## Current
 
-Task 05 (Builder Identity) is complete. The guest-to-auth flow, local draft, and photo upload boundaries have been implemented according to the revised plan.
+Task 05 (Builder Identity) is complete, including audit remediation for safe auth returns, canonical private-storage paths, stable browser auth state, global slug availability, active-theme resolution, and image limits. Task 06 has not been started.
 
 ## Pending
 
@@ -43,6 +43,7 @@ None.
 - The provided workspace is not a Git repository, so unrelated-change verification cannot use `git diff`/`git status`.
 - Supabase Security Advisor reports one warning for authenticated execution of the architecture-defined `SECURITY DEFINER public.is_admin()` RLS helper. Anonymous execution is explicitly revoked and covered by a negative test.
 - The connected Supabase MCP identity cannot inspect the dedicated development project; Task 03 OAuth state was therefore verified through the authenticated application flow and its RLS-backed profile query.
+- The standard lint script does not include every Task 05 source directory; remediation files were additionally checked with a read-only targeted Biome command.
 
 ## Environment Constraints
 

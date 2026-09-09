@@ -38,6 +38,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useLocalDraft } from "../hooks/use-local-draft";
 import { compressImageToWebP } from "../utils/image";
+import {
+	createSlugAvailabilityChecker,
+	fetchSlugAvailability,
+} from "../utils/slug-availability";
 
 type IdentityFormProps = {
   themeSlug: string;
@@ -54,7 +58,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const supabase = createClient();
+	const [supabase] = useState(() => createClient());
 
   const form = useForm<Step1IdentityInput>({
     resolver: customZodResolver(step1IdentitySchema),
@@ -98,39 +102,30 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
     saveDraft(form.getValues());
   };
 
-  // Debounced slug check
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "slug") {
-        const currentSlug = value.slug;
-        setSlugAvailable(null);
-        setSlugError(null);
-        if (!currentSlug || currentSlug.length < 3) return;
+	const currentSlug = form.watch("slug");
 
-        setIsCheckingSlug(true);
-        const timer = setTimeout(async () => {
-          try {
-            const res = await fetch(
-              `/api/invitations/slug-availability?slug=${currentSlug}`,
-            );
-            const data = await res.json();
-            if (data.available) {
-              setSlugAvailable(true);
-            } else {
-              setSlugAvailable(false);
-              setSlugError("Slug sudah digunakan.");
-            }
-          } catch (_e) {
-            // ignore
-          } finally {
-            setIsCheckingSlug(false);
-          }
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
+	useEffect(() => {
+		setSlugAvailable(null);
+		setSlugError(null);
+
+		if (!currentSlug || currentSlug.length < 3) {
+			setIsCheckingSlug(false);
+			return;
+		}
+
+		setIsCheckingSlug(true);
+		const checker = createSlugAvailabilityChecker(
+			fetchSlugAvailability,
+			(_slug, available) => {
+				setSlugAvailable(available);
+				setSlugError(available ? null : "Slug sudah digunakan.");
+				setIsCheckingSlug(false);
+			},
+		);
+		checker.check(currentSlug);
+
+		return checker.cancel;
+	}, [currentSlug]);
 
   const onSubmit = async (data: Step1IdentityInput) => {
     saveDraft(data);
@@ -363,7 +358,7 @@ function PhotoUploadBoundary({ invitationId }: { invitationId: string }) {
       }
 
       // 2. Get Signed URL
-      const { signedUrl, path } = await createUploadUrl(invitationId, type);
+		const { signedUrl } = await createUploadUrl(invitationId, type);
 
       // 3. Upload to Supabase Storage
       const res = await fetch(signedUrl, {
@@ -377,7 +372,7 @@ function PhotoUploadBoundary({ invitationId }: { invitationId: string }) {
       }
 
       // 4. Update Database path
-      await updateInvitationPhotoPath(invitationId, type, path);
+		await updateInvitationPhotoPath(invitationId, type);
       alert("Foto berhasil diunggah.");
     } catch (error) {
       alert((error as Error).message);

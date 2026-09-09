@@ -1,25 +1,30 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "../../../../lib/supabase/admin";
+import { invitationSlugSchema } from "../../../../validations/invitation";
 
 export async function GET(request: NextRequest) {
 	const searchParams = request.nextUrl.searchParams;
-	const slug = searchParams.get("slug");
+	const parsedSlug = invitationSlugSchema.safeParse(searchParams.get("slug"));
 
-	if (!slug || slug.length < 3) {
-		return NextResponse.json({ available: false }, { status: 400 });
+	if (!parsedSlug.success) {
+		return NextResponse.json(
+			{ slug: searchParams.get("slug") ?? "", available: false },
+			{ status: 400 },
+		);
 	}
 
-	const supabase = await createClient();
-	const { error } = await supabase
+	const slug = parsedSlug.data;
+	const supabase = createAdminClient();
+	const { data, error } = await supabase
 		.from("invitations")
-		.select("id")
+		.select("slug")
 		.eq("slug", slug)
-		.single();
+		.limit(1)
+		.maybeSingle();
 
-	if (error && error.code === "PGRST116") {
-		// PGRST116 means zero rows returned from .single(), so slug is available.
-		return NextResponse.json({ slug, available: true });
+	if (error) {
+		return NextResponse.json({ slug, available: false }, { status: 503 });
 	}
 
-	return NextResponse.json({ slug, available: false });
+	return NextResponse.json({ slug, available: data === null });
 }
