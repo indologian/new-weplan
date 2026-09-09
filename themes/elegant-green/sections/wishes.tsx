@@ -18,7 +18,10 @@ export function Wishes({ invitation }: { invitation: InvitationViewModel }) {
 					rows={3}
 					placeholder="Write your wishes..."
 				></textarea>
-				<button type="button" className="bg-theme-primary text-white px-6 py-2 rounded-full font-bold w-full mb-8">
+				<button
+					type="button"
+					className="bg-theme-primary text-white px-6 py-2 rounded-full font-bold w-full mb-8"
+				>
 					Send Wish
 				</button>
 

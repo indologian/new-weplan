@@ -2,43 +2,36 @@
 
 ## Task
 
-04-theme-engine audit remediation
+Final lint remediation for Task 04 — Theme Engine and Task 05 — Invitation Builder Foundation.
 
 ## Completed
 
-- Added a source-code theme catalog that resolves public theme slug metadata separately from the internal renderer key.
-- Updated `/themes/[slug]` to follow theme slug -> catalog metadata -> renderer key -> allowlisted registry -> React renderer.
-- Extended the common event view model with `isMainEvent`, representing the architecture's existing `is_main_event` field.
-- Added a Hero date and live countdown sourced exclusively from a valid event where `isMainEvent === true`.
-- Added `MotionConfig reducedMotion="user"` as the policy surrounding the entire Elegant Green reference theme.
-- Added focused catalog, registry, route, view-model rendering, countdown, and reduced-motion tests.
+- Formatted only the Task 04/05 implementation files reported by the baseline targeted Biome check.
+- Removed the unused accessibility suppression from `IdentityForm`.
+- Replaced the custom Zod resolver's explicit `any` types with `Resolver<Step1IdentityInput>` and `FieldErrors<Step1IdentityInput>`.
+- Preserved all previously validated Task 04/05 behavior and architecture boundaries.
+- Confirmed the complete Task 04/05 implementation scope passes targeted Biome with zero errors and zero warnings.
 
 ## Files created
 
-- `app/(public)/themes/[slug]/page.test.tsx`
-- `themes/catalog.ts`
-- `themes/catalog.test.ts`
-- `themes/registry.test.ts`
-- `themes/shared/countdown.ts`
-- `themes/shared/countdown.test.ts`
-- `themes/elegant-green/animations.ts`
-- `themes/elegant-green/animations.test.ts`
-- `themes/elegant-green/index.test.tsx`
+None.
 
 ## Files changed
 
-- `app/(public)/themes/[slug]/page.tsx`
-- `themes/elegant-green/config.ts`
-- `themes/elegant-green/index.tsx`
-- `themes/elegant-green/sections/hero.tsx`
-- `themes/fixtures.ts`
-- `types/theme.ts`
+- `features/invitation-builder/components/identity-form.tsx`
+- `themes/elegant-green/sections/gallery.tsx`
+- `themes/elegant-green/sections/open-invitation.tsx`
+- `themes/elegant-green/sections/rsvp.tsx`
+- `themes/elegant-green/sections/wishes.tsx`
+- `themes/elegant-green/theme.css`
+- `themes/registry.ts`
+- `themes/types.ts`
 - `docs/architecture/agent/PROJECT-STATE.md`
 - `docs/architecture/agent/HANDOFF.md`
 
 ## Dependencies
 
-None added or changed. Existing `motion` package is used.
+None added or changed.
 
 ## Migrations
 
@@ -46,19 +39,20 @@ None. Database schema and RLS were not changed.
 
 ## Tests and validation
 
-- Focused Task 04 remediation tests: pass, 6 files and 11 tests.
+- Baseline targeted Biome: failed with 18 errors and 4 warnings across 17 implementation files.
+- Final full-scope targeted Biome: pass, 57 files, zero errors and zero warnings.
+- Focused Task 04 tests: pass, 6 files and 11 tests.
+- Focused Task 05 tests: pass, 8 files and 39 tests.
 - Full `npm run test`: pass, 17 files and 66 tests.
 - `npm run typecheck`: pass.
 - `npm run lint`: pass, 36 files checked.
-- Targeted read-only Biome check: pass, 15 Task 04 files checked.
-- `npm run build`: pass; `/themes/[slug]` compiled successfully.
-- `git diff --check`: pass; only Git line-ending notices were reported.
-- Scope review: pass; all remediation changes are inside Task 04 Allowed Paths.
+- `npm run build`: pass.
+- `git diff --check`: pass; Git emitted line-ending notices only.
+- Scope review: pass; every implementation change corresponds to a baseline diagnostic and all changed files are within the approved roots or completion-documentation paths.
 
 ## Known issues
 
-- The standard lint script omits `themes/**` and `types/**`; the changed Task 04 files were checked separately without write mode.
-- A pre-existing user change to `docs/architecture/agent/CURRENT-TASK.md` was intentionally not staged or committed.
+- The standard lint script does not cover every Task 04/05 implementation root, so the full-scope targeted Biome command remains necessary unless tooling scope is changed in a separately authorized task.
 
 ## Blockers
 
@@ -66,8 +60,6 @@ None.
 
 ## Notes for next agent
 
-- Public theme slugs and renderer keys are separate concepts even where their current values happen to match.
-- Countdown is intentionally absent when no valid main event exists; it does not fall back to `weddingDate` or another field.
-- `MotionConfig reducedMotion="user"` covers both the opening screen and every revealed section.
-- Task 05 remediation remains unchanged.
-- Do not begin Task 06 without explicit authorization.
+- Task 04 and Task 05 final compliance is complete.
+- No behavior, dependency, schema, RLS, credential, or API contract was changed by this remediation.
+- Task 06 has not been started. Do not begin it without explicit authorization.

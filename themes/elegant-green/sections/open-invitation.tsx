@@ -25,7 +25,8 @@ export function OpenInvitation({
 				<h1 className="text-4xl mb-8 font-serif text-theme-primary">
 					{invitation.groom.nickname} & {invitation.bride.nickname}
 				</h1>
-				<button type="button"
+				<button
+					type="button"
 					onClick={onOpen}
 					className="bg-theme-primary text-white px-6 py-3 rounded-full hover:bg-theme-text transition-colors"
 				>
