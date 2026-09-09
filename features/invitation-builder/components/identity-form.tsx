@@ -20,6 +20,7 @@ import {
 	createSlugAvailabilityChecker,
 	fetchSlugAvailability,
 } from "../utils/slug-availability";
+import { EventsForm } from "./events-form";
 
 function customZodResolver(
 	schema: z.ZodType<Step1IdentityInput>,
@@ -333,7 +334,12 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 				)}
 			</form>
 
-			{invitationId && <PhotoUploadBoundary invitationId={invitationId} />}
+			{invitationId && (
+				<>
+					<PhotoUploadBoundary invitationId={invitationId} />
+					<EventsForm invitationId={invitationId} />
+				</>
+			)}
 		</div>
 	);
 }
@@ -418,9 +424,13 @@ function PhotoUploadBoundary({ invitationId }: { invitationId: string }) {
 			<button
 				type="button"
 				className="w-full border border-primary text-primary py-3 rounded-lg font-bold"
-				onClick={() => alert("Lanjut ke Step 2 (Task Selanjutnya)")}
+				onClick={() =>
+					document
+						.getElementById("events-step")
+						?.scrollIntoView({ behavior: "smooth" })
+				}
 			>
-				Lanjut ke Step Berikutnya
+				Lanjut ke Acara
 			</button>
 		</div>
 	);
