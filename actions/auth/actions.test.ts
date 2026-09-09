@@ -12,8 +12,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 vi.mock("next/headers", () => ({ headers: mocks.headers }));
-vi.mock("../../lib/supabase/server", () => ({ createClient: mocks.createClient }));
-vi.mock("../../lib/auth/profile", () => ({ ensureCoupleProfile: mocks.ensureCoupleProfile }));
+vi.mock("../../lib/supabase/server", () => ({
+	createClient: mocks.createClient,
+}));
+vi.mock("../../lib/auth/profile", () => ({
+	ensureCoupleProfile: mocks.ensureCoupleProfile,
+}));
 vi.mock("../../lib/auth/authorization", () => ({
 	requireAuthenticatedMutation: mocks.requireAuthenticatedMutation,
 }));
@@ -41,7 +45,10 @@ describe("authentication server actions", () => {
 	});
 
 	it("rejects malformed login input before creating a Supabase client", async () => {
-		const result = await loginAction({}, credentialsForm({ email: "invalid", password: "123" }));
+		const result = await loginAction(
+			{},
+			credentialsForm({ email: "invalid", password: "123" }),
+		);
 
 		expect(result.error).toBeDefined();
 		expect(mocks.createClient).not.toHaveBeenCalled();
@@ -51,7 +58,9 @@ describe("authentication server actions", () => {
 		const signInWithPassword = vi.fn().mockResolvedValue({ error: null });
 		mocks.createClient.mockResolvedValue({ auth: { signInWithPassword } });
 
-		await expect(loginAction({}, credentialsForm())).rejects.toThrow("redirect:/dashboard");
+		await expect(loginAction({}, credentialsForm())).rejects.toThrow(
+			"redirect:/dashboard",
+		);
 		expect(signInWithPassword).toHaveBeenCalledWith({
 			email: "couple@example.com",
 			password: "secret123",
@@ -71,7 +80,10 @@ describe("authentication server actions", () => {
 			credentialsForm({ fullName: "Budi dan Ani" }),
 		);
 
-		expect(mocks.ensureCoupleProfile).toHaveBeenCalledWith(user, "Budi dan Ani");
+		expect(mocks.ensureCoupleProfile).toHaveBeenCalledWith(
+			user,
+			"Budi dan Ani",
+		);
 		expect(result.message).toContain("konfirmasi");
 	});
 
@@ -80,7 +92,9 @@ describe("authentication server actions", () => {
 			data: { url: "https://accounts.google.test/oauth" },
 			error: null,
 		});
-		mocks.headers.mockResolvedValue(new Headers({ origin: "https://weplan.test" }));
+		mocks.headers.mockResolvedValue(
+			new Headers({ origin: "https://weplan.test" }),
+		);
 		mocks.createClient.mockResolvedValue({ auth: { signInWithOAuth } });
 
 		await expect(googleOAuthAction()).rejects.toThrow(
@@ -94,7 +108,9 @@ describe("authentication server actions", () => {
 
 	it("rejects logout before mutation when no verified identity exists", async () => {
 		const signOut = vi.fn();
-		mocks.requireAuthenticatedMutation.mockRejectedValue(new Error("unauthenticated"));
+		mocks.requireAuthenticatedMutation.mockRejectedValue(
+			new Error("unauthenticated"),
+		);
 
 		await expect(logoutAction()).rejects.toThrow("unauthenticated");
 		expect(signOut).not.toHaveBeenCalled();

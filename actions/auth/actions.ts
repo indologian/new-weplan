@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
 import { ensureCoupleProfile } from "../../lib/auth/profile";
 import {
 	type AuthActionState,
@@ -9,8 +10,14 @@ import {
 	loginSchema,
 	registerSchema,
 } from "../../lib/auth/schemas";
-import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
 import { createClient } from "../../lib/supabase/server";
+
+function getSafeRedirectUrl(callbackUrl?: string | null): string {
+	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
+		return callbackUrl;
+	}
+	return "/dashboard";
+}
 
 export async function loginAction(
 	_previousState: AuthActionState,
@@ -32,7 +39,8 @@ export async function loginAction(
 		return { error: "Email atau kata sandi tidak valid." };
 	}
 
-	redirect("/dashboard");
+	const callbackUrl = formData.get("callbackUrl")?.toString();
+	redirect(getSafeRedirectUrl(callbackUrl));
 }
 
 export async function registerAction(
@@ -63,7 +71,9 @@ export async function registerAction(
 	}
 
 	if (data.user.identities && data.user.identities.length === 0) {
-		return { message: "Jika alamat tersebut dapat didaftarkan, periksa email Anda." };
+		return {
+			message: "Jika alamat tersebut dapat didaftarkan, periksa email Anda.",
+		};
 	}
 
 	try {
@@ -73,20 +83,30 @@ export async function registerAction(
 	}
 
 	if (data.session) {
-		redirect("/dashboard");
+		const callbackUrl = formData.get("callbackUrl")?.toString();
+		redirect(getSafeRedirectUrl(callbackUrl));
 	}
 
-	return { message: "Pendaftaran berhasil. Periksa email untuk konfirmasi akun." };
+	return {
+		message: "Pendaftaran berhasil. Periksa email untuk konfirmasi akun.",
+	};
 }
 
-export async function googleOAuthAction(): Promise<void> {
+export async function googleOAuthAction(formData?: FormData): Promise<void> {
 	const requestHeaders = await headers();
 	const origin = requestHeaders.get("origin") ?? "http://localhost:3000";
 	const supabase = await createClient();
+
+	const callbackUrl = formData?.get("callbackUrl")?.toString();
+	const redirectTo = new URL(`${ origin }/auth/callback`);
+	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
+		redirectTo.searchParams.set("callbackUrl", callbackUrl);
+	}
+
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider: "google",
 		options: {
-			redirectTo: `${origin}/auth/callback`,
+			redirectTo: redirectTo.toString(),
 		},
 	});
 

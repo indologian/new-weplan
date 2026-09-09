@@ -20,11 +20,13 @@ import {
 type AuthFormProps = {
 	initialState?: AuthActionState;
 	mode: "login" | "register";
+	callbackUrl?: string;
 };
 
 export function AuthForm({
 	initialState = initialAuthActionState,
 	mode,
+	callbackUrl,
 }: AuthFormProps) {
 	const isRegister = mode === "register";
 	const action = isRegister ? registerAction : loginAction;
@@ -73,6 +75,10 @@ export function AuthForm({
 				className="mt-8 space-y-5"
 				onSubmit={validateBeforeSubmit}
 			>
+				{callbackUrl ? (
+					<input type="hidden" name="callbackUrl" value={callbackUrl} />
+				) : null}
+
 				{isRegister ? (
 					<label className="block text-sm font-medium" htmlFor="fullName">
 						Nama lengkap
@@ -155,6 +161,9 @@ export function AuthForm({
 			</div>
 
 			<form action={googleOAuthAction}>
+				{callbackUrl ? (
+					<input type="hidden" name="callbackUrl" value={callbackUrl} />
+				) : null}
 				<button
 					className="w-full rounded-md border border-border bg-secondary px-4 py-2 font-medium text-secondary-foreground"
 					type="submit"
@@ -167,7 +176,12 @@ export function AuthForm({
 				{isRegister ? "Sudah memiliki akun?" : "Belum memiliki akun?"}{" "}
 				<Link
 					className="font-medium text-primary"
-					href={isRegister ? "/login" : "/register"}
+					href={
+						(isRegister ? "/login" : "/register") +
+						(callbackUrl
+							? `?callbackUrl=${encodeURIComponent(callbackUrl)}`
+							: "")
+					}
 				>
 					{isRegister ? "Masuk" : "Daftar"}
 				</Link>

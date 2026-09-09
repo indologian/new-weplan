@@ -3,7 +3,9 @@ import { ensureCoupleProfile } from "@/lib/auth/profile";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
-	const code = request.nextUrl.searchParams.get("code");
+	const searchParams = request.nextUrl.searchParams;
+	const code = searchParams.get("code");
+	const callbackUrl = searchParams.get("callbackUrl");
 	const loginUrl = new URL("/login", request.url);
 
 	if (!code) {
@@ -25,6 +27,10 @@ export async function GET(request: NextRequest) {
 		await supabase.auth.signOut();
 		loginUrl.searchParams.set("error", "Profil akun tidak dapat disiapkan.");
 		return NextResponse.redirect(loginUrl);
+	}
+
+	if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
+		return NextResponse.redirect(new URL(callbackUrl, request.url));
 	}
 
 	return NextResponse.redirect(new URL("/dashboard", request.url));

@@ -8,16 +8,23 @@
 
 ## Current
 
-Task 04 is complete. Awaiting an explicit `CURRENT-TASK.md` update; Task 05 has not been started.
+Task 05 (Builder Identity) is complete. The guest-to-auth flow, local draft, and photo upload boundaries have been implemented according to the revised plan.
 
 ## Pending
 
-05-couple-onboarding through 20-production-hardening.
+06-builder-event-content through 20-production-hardening.
 
 ## Architecture invariants
 
 - Next.js App Router, no `src/`
 - Cloudflare Workers deployment; prefer vinext for new deployment, subject to compatibility check
+- [x] **01**: Supabase SSR Auth
+- [x] **02**: User Roles & Authorization
+- [x] **03**: Route Middleware
+- [x] **04**: Theme Engine
+- [x] **05**: Builder Identity
+- [ ] **06**: Builder Event & Content
+- [ ] **07**: Publish & Payment
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
