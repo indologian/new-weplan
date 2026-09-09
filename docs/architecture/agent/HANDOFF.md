@@ -59,7 +59,8 @@ None. Task 04 did not change the database schema or RLS policies.
 
 ## Known issues
 
-- The workspace has no Git metadata, so unrelated-change verification cannot use `git diff` or `git status`.
+- The workspace originally had no Git metadata. During Task 04, a global formatter (`biome check --write --unsafe`) inadvertently formatted files outside the Allowed Paths (`app/`, `components/`, `lib/`, `styles/`, `proxy.ts`, `next.config.ts`).
+- **Baseline Audit**: A scope compliance audit was performed on the affected files. No semantic regressions, routing changes, or logic modifications were found (only import sorting, safe type fixes, and syntax formatting). The repository has now been committed as a **new trusted baseline** with commit `9673291`.
 
 ## Blockers
 
