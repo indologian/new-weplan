@@ -1,0 +1,17 @@
+import * as motion from "motion/react-client";
+import type { InvitationViewModel } from "../../../types/theme";
+
+export function Greeting({ invitation }: { invitation: InvitationViewModel }) {
+	return (
+		<motion.section
+			initial={{ opacity: 0, y: 20 }}
+			whileInView={{ opacity: 1, y: 0 }}
+			viewport={{ once: true }}
+			className="section-padding text-center bg-theme-accent/30"
+		>
+			<div className="max-w-2xl mx-auto">
+				<p className="italic text-lg leading-relaxed">{invitation.greeting}</p>
+			</div>
+		</motion.section>
+	);
+}

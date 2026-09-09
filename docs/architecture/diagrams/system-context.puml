@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+actor Visitor
+actor Couple
+actor Invitee
+actor Admin
+rectangle "Weplan on Cloudflare Workers" as W
+database "Supabase Postgres" as DB
+cloud "Supabase Auth" as A
+cloud "Private Storage" as S
+cloud "Midtrans" as M
+Visitor --> W
+Couple --> W
+Invitee --> W
+Admin --> W
+W --> A
+W --> DB
+W --> S
+W --> M
+M --> W : webhook
+@enduml

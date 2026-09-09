@@ -1,0 +1,17 @@
+@startuml
+actor Couple
+participant Browser
+participant "Weplan Server" as Server
+database DB
+participant Midtrans
+Couple -> Browser : Checkout
+Browser -> Server : invitationId
+Server -> DB : auth/owner/status + resolve theme/tier
+Server -> DB : create transaction snapshot
+Server -> Midtrans : create Snap transaction
+Server -> DB : invitation = payment_pending
+Server --> Browser : Snap token
+Midtrans -> Server : notification
+Server -> Server : verify + idempotency
+Server -> DB : atomic paid + activate
+@enduml

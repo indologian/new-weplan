@@ -1,0 +1,20 @@
+@startuml
+start
+:Select Theme;
+:Step 1 text fields;
+if (Authenticated?) then (no)
+  :Store temporary local draft;
+  :Login/Register;
+  :Create invitation draft;
+endif
+:Upload cover/groom/bride;
+:Step 2 Events;
+:Step 3 Story;
+:Step 4 Gallery/Video;
+:Step 5 Gifts;
+:Step 6 RSVP/Wishes config;
+:Step 7 Music;
+:Step 8 Review/Preview;
+:Checkout;
+stop
+@enduml

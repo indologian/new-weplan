@@ -1,0 +1,42 @@
+# Task 17 — Payment
+
+## Goal
+Implement Midtrans checkout, snapshots, webhook verification/idempotency and activation.
+
+## Depends On
+16
+
+## Required Context
+- `docs/architecture/reference/PAYMENT.md`
+- `docs/architecture/reference/SECURITY.md`
+- `docs/architecture/reference/DATABASE.md`
+
+Do not read unrelated reference documents.
+
+## Allowed Paths
+- `app/docs/architecture/api/payments/**`
+- `features/payments/**`
+- `lib/midtrans/**`
+- `actions/payments/**`
+- `docs/architecture/agent/PROJECT-STATE.md`
+- `docs/architecture/agent/HANDOFF.md`
+
+## Do Not Touch
+Any unrelated feature, future task, or architecture decision. If a required change falls outside allowed paths, record a BLOCKER and stop that part.
+
+## Acceptance Criteria
+Browser cannot set price or activate; duplicate webhook safe; paid activation atomic; failed/expired returns eligible invitation to draft.
+
+## Required Validation
+- relevant automated/unit/integration tests
+- `typecheck`
+- `lint`
+- build when appropriate
+- docs/architecture/security/ownership negative tests when data access changes
+
+## Completion Output
+Update:
+- `docs/architecture/agent/PROJECT-STATE.md`
+- `docs/architecture/agent/HANDOFF.md`
+
+Then STOP. Do not begin Task 18.

@@ -1,0 +1,8 @@
+@startuml
+[*] --> Draft
+Draft --> PaymentPending : checkout
+PaymentPending --> Draft : failed/expired/cancelled
+PaymentPending --> Active : verified paid webhook
+Active --> Expired : expires_at
+Expired --> [*] : delete_after / hard delete
+@enduml

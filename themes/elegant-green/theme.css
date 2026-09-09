@@ -1,0 +1,23 @@
+.theme-elegant-green {
+  --theme-primary: #2d6a4f;
+  --theme-secondary: #95d5b2;
+  --theme-bg: #f8f9fa;
+  --theme-text: #1b4332;
+  --theme-accent: #d8f3dc;
+
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  min-height: 100vh;
+}
+
+.theme-elegant-green h1,
+.theme-elegant-green h2,
+.theme-elegant-green h3,
+.theme-elegant-green .font-serif {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.theme-elegant-green .section-padding {
+  padding: 4rem 1.5rem;
+}

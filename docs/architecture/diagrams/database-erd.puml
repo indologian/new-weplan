@@ -1,0 +1,26 @@
+@startuml
+entity profiles
+entity tiers
+entity themes
+entity invitations
+entity wedding_events
+entity stories
+entity gallery_items
+entity gift_accounts
+entity invitation_guests
+entity rsvps
+entity wishes
+entity transactions
+tiers ||--o{ themes
+profiles ||--o{ invitations
+themes ||--o{ invitations
+invitations ||--o{ wedding_events
+invitations ||--o{ stories
+invitations ||--o{ gallery_items
+invitations ||--o{ gift_accounts
+invitations ||--o{ invitation_guests
+invitation_guests ||--o| rsvps
+invitation_guests ||--o| wishes
+invitations |o--o{ transactions
+profiles ||--o{ transactions
+@enduml

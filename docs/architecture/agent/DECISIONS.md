@@ -1,0 +1,23 @@
+# Architecture Decisions
+
+- Guest may fill Step 1 text before authentication.
+- Authentication is required before invitation creation/upload.
+- Cover, groom, bride photos remain at end of Step 1.
+- Theme selected before builder.
+- Theme renderer lives in source code; DB stores `renderer_key`.
+- Theme animations live in source code.
+- Website design system uses centralized semantic CSS variables.
+- Invitation theme tokens are isolated from website tokens.
+- Slug editable only while draft/payment_pending; locked active/expired.
+- Couple may edit invitation content while payment pending; theme/tier locked.
+- Private Supabase Storage.
+- Signed upload direct browser -> Storage after server authorization.
+- Public invitation requires slug + valid invitee token + active lifecycle.
+- One RSVP and one wish per invitee.
+- Homepage admin configuration is visibility toggle only.
+- One payment activates one invitation.
+- Transaction snapshots preserve commercial history.
+- Database validation environment:
+  - Preferred: local Supabase.
+  - Official fallback: dedicated remote Supabase development project.
+  - Production database must never be used for destructive migration/reset validation.
