@@ -57,9 +57,9 @@ export function ElegantGreenTheme({
 				{invitation.gallery && invitation.gallery.length > 0 && (
 					<Gallery invitation={invitation} />
 				)}
-				<Rsvp invitee={invitee} />
+				{invitation.rsvpEnabled && <Rsvp invitee={invitee} />}
 				<Gift invitation={invitation} />
-				<Wishes invitation={invitation} />
+				{invitation.wishesEnabled && <Wishes invitation={invitation} />}
 				<Footer invitation={invitation} />
 			</div>
 		</MotionConfig>

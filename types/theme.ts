@@ -11,15 +11,23 @@ export interface EventModel {
 
 export interface StoryModel {
 	id: string;
-	date: string;
+	date: string | null;
 	title: string;
 	description: string;
+	imageUrl?: string;
 }
 
 export interface ImageModel {
 	id: string;
+	type: "image";
 	url: string;
 	alt: string;
+}
+
+export interface YouTubeModel {
+	id: string;
+	type: "youtube";
+	videoId: string;
 }
 
 export interface GiftAccountModel {
@@ -42,24 +50,30 @@ export interface InvitationViewModel {
 	theme: {
 		rendererKey: string;
 	};
+	coverPhotoUrl?: string;
+	musicUrl?: string;
+	rsvpEnabled: boolean;
+	wishesEnabled: boolean;
 	greeting: string;
 	weddingDate: string; // ISO date string for countdown
 	groom: {
 		name: string;
 		nickname: string;
 		parents: string;
+		photoUrl?: string;
 		instagram?: string;
 	};
 	bride: {
 		name: string;
 		nickname: string;
 		parents: string;
+		photoUrl?: string;
 		instagram?: string;
 	};
 	prayer: string;
 	events: EventModel[];
 	story: StoryModel[];
-	gallery: ImageModel[];
+	gallery: Array<ImageModel | YouTubeModel>;
 	gifts: GiftAccountModel[];
 	wishes: WishModel[];
 	footerGreeting: string;

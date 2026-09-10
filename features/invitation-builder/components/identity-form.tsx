@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { type FieldErrors, type Resolver, useForm } from "react-hook-form";
@@ -52,14 +53,22 @@ function customZodResolver(
 
 type IdentityFormProps = {
 	themeSlug: string;
+	initialInvitationId?: string;
+	initialIdentity?: Step1IdentityInput;
 };
 
-export function IdentityForm({ themeSlug }: IdentityFormProps) {
+export function IdentityForm({
+	themeSlug,
+	initialInvitationId,
+	initialIdentity,
+}: IdentityFormProps) {
 	const router = useRouter();
 	const { draft, saveDraft, clearDraft, isLoaded } = useLocalDraft();
 	// biome-ignore lint/suspicious/noExplicitAny: Temporary until User type is imported
 	const [user, setUser] = useState<any>(null);
-	const [invitationId, setInvitationId] = useState<string | null>(null);
+	const [invitationId, setInvitationId] = useState<string | null>(
+		initialInvitationId ?? null,
+	);
 	const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 	const [slugError, setSlugError] = useState<string | null>(null);
 	const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
@@ -69,7 +78,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 
 	const form = useForm<Step1IdentityInput>({
 		resolver: customZodResolver(step1IdentitySchema),
-		defaultValues: {
+		defaultValues: initialIdentity ?? {
 			slug: "",
 			groom_name: "",
 			groom_father_name: "",
@@ -89,7 +98,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 	}, [supabase]);
 
 	useEffect(() => {
-		if (isLoaded && Object.keys(draft).length > 0) {
+		if (!initialInvitationId && isLoaded && Object.keys(draft).length > 0) {
 			form.reset({
 				slug: draft.slug || "",
 				groom_name: draft.groom_name || "",
@@ -102,7 +111,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 				prayer_text: draft.prayer_text || "",
 			});
 		}
-	}, [isLoaded, draft, form]);
+	}, [initialInvitationId, isLoaded, draft, form]);
 
 	// Save draft continuously or on blur
 	const handleBlur = () => {
@@ -348,6 +357,12 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 					<GiftsForm invitationId={invitationId} />
 					<InteractionConfigForm invitationId={invitationId} />
 					<MusicForm invitationId={invitationId} />
+					<Link
+						href={`/create/review/${invitationId}`}
+						className="block w-full rounded-md bg-primary px-4 py-3 text-center font-semibold text-primary-foreground"
+					>
+						Review &amp; Preview
+					</Link>
 				</>
 			)}
 		</div>

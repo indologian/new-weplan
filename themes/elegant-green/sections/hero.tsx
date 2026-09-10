@@ -49,7 +49,12 @@ export function Hero({ invitation }: { invitation: InvitationViewModel }) {
 			initial={{ opacity: 0, y: 20 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			viewport={{ once: true }}
-			className="section-padding text-center min-h-[70vh] flex flex-col justify-center"
+			className="section-padding text-center min-h-[70vh] flex flex-col justify-center bg-cover bg-center"
+			style={
+				invitation.coverPhotoUrl
+					? { backgroundImage: `url(${invitation.coverPhotoUrl})` }
+					: undefined
+			}
 		>
 			<h3 className="uppercase tracking-widest text-sm mb-4">The Wedding Of</h3>
 			<h1 className="text-6xl font-serif text-theme-primary mb-4">

@@ -1,13 +1,18 @@
 import { notFound } from "next/navigation";
+import { getOwnedBuilderResume } from "../../../actions/invitations/review";
 import { IdentityForm } from "../../../features/invitation-builder/components/identity-form";
 import { createClient } from "../../../lib/supabase/server";
 import { invitationSlugSchema } from "../../../validations/invitation";
 
 type CreatePageProps = {
 	params: Promise<{ themeSlug: string }>;
+	searchParams?: Promise<{ invitationId?: string | string[] }>;
 };
 
-export default async function CreatePage({ params }: CreatePageProps) {
+export default async function CreatePage({
+	params,
+	searchParams,
+}: CreatePageProps) {
 	const { themeSlug } = await params;
 	const parsedThemeSlug = invitationSlugSchema.safeParse(themeSlug);
 
@@ -26,6 +31,12 @@ export default async function CreatePage({ params }: CreatePageProps) {
 	if (error || !theme) {
 		notFound();
 	}
+	const requestedInvitationId = (await searchParams)?.invitationId;
+	const resume =
+		typeof requestedInvitationId === "string"
+			? await getOwnedBuilderResume(requestedInvitationId)
+			: null;
+	if (resume && resume.themeSlug !== theme.slug) notFound();
 
 	return (
 		<div className="max-w-2xl mx-auto py-12 px-4">
@@ -33,7 +44,11 @@ export default async function CreatePage({ params }: CreatePageProps) {
 			<p className="text-muted-foreground mb-8">
 				Langkah 1: Identitas & URL Undangan (Tema: {themeSlug})
 			</p>
-			<IdentityForm themeSlug={theme.slug} />
+			<IdentityForm
+				themeSlug={theme.slug}
+				initialInvitationId={resume?.invitationId}
+				initialIdentity={resume?.identity}
+			/>
 		</div>
 	);
 }

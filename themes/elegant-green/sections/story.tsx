@@ -1,4 +1,5 @@
 import * as motion from "motion/react-client";
+import Image from "next/image";
 import type { InvitationViewModel } from "../../../types/theme";
 
 export function CoupleStory({
@@ -23,6 +24,16 @@ export function CoupleStory({
 						className={`flex flex-col md:flex-row gap-4 ${i % 2 === 0 ? "" : "md:flex-row-reverse"}`}
 					>
 						<div className="md:w-1/3 font-bold text-theme-primary text-xl">
+							{item.imageUrl && (
+								<Image
+									src={item.imageUrl}
+									alt={item.title}
+									width={320}
+									height={240}
+									unoptimized
+									className="mb-3 w-full rounded-lg object-cover"
+								/>
+							)}
 							{item.date}
 						</div>
 						<div className="md:w-2/3 bg-white p-6 rounded-xl shadow-sm border border-theme-primary/10">

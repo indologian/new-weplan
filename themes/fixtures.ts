@@ -6,6 +6,8 @@ export const mockInvitation: InvitationViewModel = {
 	theme: {
 		rendererKey: "elegant-green",
 	},
+	rsvpEnabled: true,
+	wishesEnabled: true,
 	greeting:
 		"By the grace of God, we joyfully invite you to celebrate our union.",
 	weddingDate: "2026-12-25T08:00:00Z",
@@ -62,16 +64,19 @@ export const mockInvitation: InvitationViewModel = {
 	gallery: [
 		{
 			id: "img-1",
+			type: "image",
 			url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc",
 			alt: "Prewedding 1",
 		},
 		{
 			id: "img-2",
+			type: "image",
 			url: "https://images.unsplash.com/photo-1519225421980-715cb0215aed",
 			alt: "Prewedding 2",
 		},
 		{
 			id: "img-3",
+			type: "image",
 			url: "https://images.unsplash.com/photo-1606800052052-a08af7148866",
 			alt: "Prewedding 3",
 		},

@@ -14,19 +14,29 @@ export function Gallery({ invitation }: { invitation: InvitationViewModel }) {
 				Gallery
 			</h2>
 			<div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-4">
-				{invitation.gallery.map((img) => (
+				{invitation.gallery.map((item) => (
 					<div
-						key={img.id}
+						key={item.id}
 						className="aspect-square bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center"
 					>
-						<Image
-							src={img.url}
-							alt={img.alt}
-							className="w-full h-full object-cover"
-							width={500}
-							height={500}
-							unoptimized
-						/>
+						{item.type === "image" ? (
+							<Image
+								src={item.url}
+								alt={item.alt}
+								className="w-full h-full object-cover"
+								width={500}
+								height={500}
+								unoptimized
+							/>
+						) : (
+							<iframe
+								src={`https://www.youtube-nocookie.com/embed/${item.videoId}`}
+								title="Wedding gallery video"
+								className="h-full w-full"
+								allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+								allowFullScreen
+							/>
+						)}
 					</div>
 				))}
 			</div>

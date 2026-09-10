@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
 	createClient: vi.fn(),
+	getOwnedBuilderResume: vi.fn(),
 	notFound: vi.fn(() => {
 		throw new Error("not-found");
 	}),
@@ -9,6 +10,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../../../lib/supabase/server", () => ({
 	createClient: mocks.createClient,
+}));
+vi.mock("../../../actions/invitations/review", () => ({
+	getOwnedBuilderResume: mocks.getOwnedBuilderResume,
 }));
 vi.mock("next/navigation", () => ({ notFound: mocks.notFound }));
 vi.mock(
@@ -37,6 +41,7 @@ function mockThemeLookup(data: { slug: string } | null, error: unknown = null) {
 describe("create theme route", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mocks.getOwnedBuilderResume.mockResolvedValue(null);
 	});
 
 	it("renders only an active theme resolved on the server", async () => {
@@ -64,5 +69,21 @@ describe("create theme route", () => {
 			CreatePage({ params: Promise.resolve({ themeSlug: "Invalid Theme" }) }),
 		).rejects.toThrow("not-found");
 		expect(mocks.createClient).not.toHaveBeenCalled();
+	});
+
+	it("verifies and resumes the same persisted invitation", async () => {
+		mockThemeLookup({ slug: "elegant-green" });
+		mocks.getOwnedBuilderResume.mockResolvedValue({
+			invitationId: "owned-id",
+			themeSlug: "elegant-green",
+			identity: { slug: "persisted-couple" },
+		});
+		await expect(
+			CreatePage({
+				params: Promise.resolve({ themeSlug: "elegant-green" }),
+				searchParams: Promise.resolve({ invitationId: "owned-id" }),
+			}),
+		).resolves.toBeTruthy();
+		expect(mocks.getOwnedBuilderResume).toHaveBeenCalledWith("owned-id");
 	});
 });
