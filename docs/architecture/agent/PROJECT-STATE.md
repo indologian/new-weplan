@@ -12,14 +12,15 @@
 - 08-builder-gallery: authenticated image and YouTube gallery CRUD, database-enforced tier limits, atomic concurrent creation, deterministic combined ordering, and server-authoritative private image storage paths.
 - 09-builder-gifts: authenticated bank gift-account CRUD, exact text account-number handling, deterministic complete-set ordering, and copy-friendly presentation.
 - 10-builder-interactions: authenticated invitation interaction-config read/update, independent RSVP and Wishes boolean persistence, and persisted builder state loading.
+- 11-builder-music: authenticated private background-audio upload, server-authoritative canonical persistence, safe replace/remove lifecycle, and user-gesture signed preview playback.
 
 ## Current
 
-Task 10 is complete. Task 11 has not been started.
+Task 11 is complete. Task 12 has not been started.
 
 ## Pending
 
-11 through 20-production-hardening.
+12 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -35,6 +36,7 @@ Task 10 is complete. Task 11 has not been started.
 - [x] **08**: Builder Gallery
 - [x] **09**: Builder Gifts
 - [x] **10**: Builder Interaction Config
+- [x] **11**: Builder Music
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
@@ -55,6 +57,7 @@ None.
 - The standard lint script does not include every Task 08 source directory; all Task 08 application files are additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 09 source directory; all Task 09 implementation files are additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 10 source directory; all Task 10 implementation files are additionally covered by a read-only targeted Biome check.
+- The standard lint script does not include every Task 11 source directory; all Task 11 implementation files are additionally covered by a read-only targeted Biome check.
 
 ## Environment Constraints
 
