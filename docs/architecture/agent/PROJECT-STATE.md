@@ -10,14 +10,15 @@
 - 06-builder-events: authenticated multi-event CRUD, deterministic ordering, per-event location/time data, and single-main-event selection protected by the database partial unique index.
 - 07-builder-story: authenticated Couple Story CRUD, deterministic complete-set ordering, optional dates, and server-authorized private story images with canonical storage paths.
 - 08-builder-gallery: authenticated image and YouTube gallery CRUD, database-enforced tier limits, atomic concurrent creation, deterministic combined ordering, and server-authoritative private image storage paths.
+- 09-builder-gifts: authenticated bank gift-account CRUD, exact text account-number handling, deterministic complete-set ordering, and copy-friendly presentation.
 
 ## Current
 
-Task 08 is complete. Task 09 has not been started.
+Task 09 is complete. Task 10 has not been started.
 
 ## Pending
 
-08 through 20-production-hardening.
+10 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -31,6 +32,7 @@ Task 08 is complete. Task 09 has not been started.
 - [x] **06**: Builder Event & Content
 - [x] **07**: Builder Story
 - [x] **08**: Builder Gallery
+- [x] **09**: Builder Gifts
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
@@ -49,6 +51,7 @@ None.
 - The connected Supabase MCP identity cannot inspect the dedicated development project; Task 03 OAuth state was therefore verified through the authenticated application flow and its RLS-backed profile query.
 - The standard lint script does not include every Task 04/05 source directory; the full Task 04/05 implementation scope is additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 08 source directory; all Task 08 application files are additionally covered by a read-only targeted Biome check.
+- The standard lint script does not include every Task 09 source directory; all Task 09 implementation files are additionally covered by a read-only targeted Biome check.
 
 ## Environment Constraints
 
