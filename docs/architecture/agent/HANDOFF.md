@@ -2,29 +2,26 @@
 
 ## Task
 
-09 — Builder Gifts
+10 — Builder Interaction Config
 
 ## Completed
 
-- Added authenticated bank gift-account create, read, update, delete, and deterministic complete-set reorder actions.
-- Added authoritative Zod validation for gift content, invitation/account UUIDs, and duplicate-free reorder lists.
-- Kept account numbers as strings throughout form state, validation, Server Actions, database persistence mapping, presentation, and Clipboard handling.
-- Preserved leading zeroes while trimming surrounding whitespace.
-- Bound update and delete operations to both account ID and invitation ID after explicit invitation ownership verification.
-- Reorder verifies the submitted IDs exactly match the full current invitation account set before normalizing `sort_order` to `0..n-1`.
-- Added copy-friendly account presentation that writes the exact persisted account-number string.
-- Mounted the separate Gifts form after Gallery through the existing builder orchestration.
+- Added authenticated, invitation-owned interaction-config reads and updates.
+- Added authoritative Zod validation for the invitation UUID and the two independent boolean fields: `rsvpEnabled` and `wishesEnabled`.
+- Restricted persistence to `rsvp_enabled` and `wishes_enabled`; unrelated client fields are stripped and never enter the update payload.
+- Added explicit ownership checks for both reads and writes, with controlled rejection for unauthenticated and foreign-owner access.
+- Loaded the builder's initial interaction state from persisted database values without localStorage or client defaults.
+- Supported and tested all four independent RSVP/Wishes boolean combinations.
+- Mounted the separate interaction-config form through the existing builder orchestration.
 
 ## Files created
 
-- `actions/invitations/gifts.ts`
-- `actions/invitations/gifts.test.ts`
-- `actions/invitations/gift-test-support.ts`
-- `validations/gift-account.ts`
-- `validations/gift-account.test.ts`
-- `features/invitation-builder/components/gifts-form.tsx`
-- `features/invitation-builder/utils/gift-account-copy.ts`
-- `features/invitation-builder/utils/gift-account-copy.test.ts`
+- `actions/invitations/interaction-config.ts`
+- `actions/invitations/interaction-config.test.ts`
+- `actions/invitations/interaction-config-test-support.ts`
+- `validations/interaction-config.ts`
+- `validations/interaction-config.test.ts`
+- `features/invitation-builder/components/interaction-config-form.tsx`
 
 ## Files changed
 
@@ -36,25 +33,25 @@
 
 None added or changed.
 
-## Database and Storage
+## Database, API, and Storage
 
-- No migration, schema, RLS, grant, or Storage changes.
-- Existing `public.gift_accounts` text contract remains the persistence source of truth.
+- No migration, schema, RLS, grant, public API, or Storage changes.
+- Existing `invitations.rsvp_enabled` and `invitations.wishes_enabled` boolean columns remain the persistence source of truth.
 
 ## Tests and validation
 
-- Focused Task 09 tests: pass, 3 files and 14 tests.
-- Full `npm run test`: pass, 31 files and 150 tests.
+- Focused Task 10 tests: pass, 2 files and 18 tests.
+- Full `npm run test`: pass, 33 files and 168 tests.
 - `npm run typecheck`: pass.
 - `npm run lint`: pass, 40 files checked.
-- Targeted read-only Biome: pass, 9 Task 09 implementation files with zero diagnostics.
+- Targeted read-only Biome: pass, 7 Task 10 implementation files with zero diagnostics.
 - `npm run build`: pass.
 - Scoped `git diff --check`: pass.
-- Credential, dependency, schema/RLS, actual diff, and staged-scope reviews: pass.
+- Credential, dependency, schema/RLS, actual-diff, and scope reviews: pass.
 
 ## Known issues
 
-None for Task 09.
+None for Task 10.
 
 ## Blockers
 
@@ -62,7 +59,8 @@ None.
 
 ## Notes for next agent
 
-- `accountNumber` must remain text; do not introduce numeric conversion or normalization that removes leading zeroes.
-- Gift reorder is complete-set only and every write remains scoped by account ID plus invitation ID.
-- Existing user-owned changes in `docs/architecture/agent/CURRENT-TASK.md`, `docs/architecture/tasks/08-builder-gallery.md`, and `docs/architecture/tasks/09-builder-gifts.md` are excluded from the Task 09 commit.
-- Task 10 has not been started. Do not begin it without explicit authorization.
+- Interaction-config state must continue to load from the persisted invitation booleans; do not introduce localStorage as its source of truth.
+- Interaction-config writes are intentionally narrow and may update only `rsvp_enabled` and `wishes_enabled` after explicit invitation ownership verification.
+- Task 10 does not implement public RSVP or Wishes mutations; the persisted flags are intended as authoritative gates for future tasks.
+- The existing user-owned change in `docs/architecture/tasks/10-builder-interactions.md` is excluded from the Task 10 commit.
+- Task 11 has not been started. Do not begin it without explicit authorization.

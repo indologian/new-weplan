@@ -23,6 +23,7 @@ import {
 import { EventsForm } from "./events-form";
 import { GalleryForm } from "./gallery-form";
 import { GiftsForm } from "./gifts-form";
+import { InteractionConfigForm } from "./interaction-config-form";
 import { StoriesForm } from "./stories-form";
 
 function customZodResolver(
@@ -344,6 +345,7 @@ export function IdentityForm({ themeSlug }: IdentityFormProps) {
 					<StoriesForm invitationId={invitationId} />
 					<GalleryForm invitationId={invitationId} />
 					<GiftsForm invitationId={invitationId} />
+					<InteractionConfigForm invitationId={invitationId} />
 				</>
 			)}
 		</div>
