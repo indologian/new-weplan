@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({ requireAuthenticatedMutation: vi.fn() }));
 vi.mock("../../lib/auth/authorization", () => ({
 	requireAuthenticatedMutation: mocks.requireAuthenticatedMutation,
@@ -101,6 +103,7 @@ describe("gallery actions", () => {
 			youtube_video_id: null,
 			sort_order: 0,
 		});
+		database.objects.add(`${ownerId}/${invitationId}/gallery/${id}.webp`);
 		await deleteGalleryItem(invitationId, id);
 		expect(database.removedPaths).toEqual([
 			[`${ownerId}/${invitationId}/gallery/${id}.webp`],

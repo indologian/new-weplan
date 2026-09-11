@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({ requireAuthenticatedMutation: vi.fn() }));
 vi.mock("../../lib/auth/authorization", () => ({
 	requireAuthenticatedMutation: mocks.requireAuthenticatedMutation,

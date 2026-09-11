@@ -92,6 +92,10 @@ export class StoryTestDatabase {
 		from: (table: string) => new FakeQuery(this, table),
 		storage: {
 			from: vi.fn(() => ({
+				info: vi.fn(async () => ({
+					data: { size: 100, contentType: "image/webp" },
+					error: null,
+				})),
 				createSignedUploadUrl: vi.fn(async (path: string) => {
 					this.signedPaths.push(path);
 					return {

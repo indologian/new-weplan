@@ -4,6 +4,15 @@ export const MAX_IMAGE_DIMENSION = 1920;
 
 type ImageInput = Pick<File, "size" | "type">;
 
+export function validateOptimizedImageBlob(blob: Pick<Blob, "size" | "type">) {
+	if (blob.type !== "image/webp") {
+		throw new Error("Browser tidak menghasilkan format WebP yang valid.");
+	}
+	if (blob.size > MAX_IMAGE_OUTPUT_BYTES) {
+		throw new Error("Ukuran gambar hasil optimasi melebihi 500 KB.");
+	}
+}
+
 export function validateImageInput(file: ImageInput): void {
 	if (!file.type.startsWith("image/")) {
 		throw new Error("File harus berupa gambar.");
@@ -73,6 +82,7 @@ export async function compressImageToWebP(file: File): Promise<Blob> {
 	for (let resizeAttempt = 0; resizeAttempt < 8; resizeAttempt += 1) {
 		for (const quality of qualities) {
 			const blob = await encodeWebP(image, width, height, quality);
+			validateOptimizedImageBlob(blob);
 			if (blob.size <= MAX_IMAGE_OUTPUT_BYTES) {
 				return blob;
 			}

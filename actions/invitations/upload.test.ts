@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({
 	requireAuthenticatedMutation: vi.fn(),
 }));
@@ -10,10 +12,14 @@ vi.mock("../../lib/auth/authorization", () => ({
 
 import { createUploadUrl, updateInvitationPhotoPath } from "./upload";
 
+const ownerId = "00000000-0000-4000-8000-000000000010";
+const invitationId = "00000000-0000-4000-8000-000000000100";
+const foreignInvitationId = "00000000-0000-4000-8000-000000000200";
+
 function createSupabase(options?: { owned?: boolean }) {
 	const owned = options?.owned ?? true;
 	const maybeSingle = vi.fn().mockResolvedValue({
-		data: owned ? { id: "invitation-1" } : null,
+		data: owned ? { id: invitationId } : null,
 		error: null,
 	});
 	const selectQuery = {
@@ -34,6 +40,10 @@ function createSupabase(options?: { owned?: boolean }) {
 		data: { signedUrl: "https://storage.test/signed" },
 		error: null,
 	});
+	const info = vi.fn().mockResolvedValue({
+		data: { size: 100, contentType: "image/webp" },
+		error: null,
+	});
 	const from = vi.fn((table: string) => {
 		if (table === "invitations") {
 			return { select: vi.fn().mockReturnValue(selectQuery), update };
@@ -45,7 +55,7 @@ function createSupabase(options?: { owned?: boolean }) {
 		client: {
 			from,
 			storage: {
-				from: vi.fn().mockReturnValue({ createSignedUploadUrl }),
+				from: vi.fn().mockReturnValue({ createSignedUploadUrl, info }),
 			},
 		},
 		createSignedUploadUrl,
@@ -62,10 +72,10 @@ describe("invitation photo upload actions", () => {
 		const supabase = createSupabase({ owned: false });
 		mocks.requireAuthenticatedMutation.mockResolvedValue({
 			supabase: supabase.client,
-			userId: "owner-1",
+			userId: ownerId,
 		});
 
-		await expect(createUploadUrl("invitation-2", "cover")).rejects.toThrow(
+		await expect(createUploadUrl(foreignInvitationId, "cover")).rejects.toThrow(
 			"Tidak memiliki akses",
 		);
 		expect(supabase.createSignedUploadUrl).not.toHaveBeenCalled();
@@ -75,10 +85,10 @@ describe("invitation photo upload actions", () => {
 		const supabase = createSupabase();
 		mocks.requireAuthenticatedMutation.mockResolvedValue({
 			supabase: supabase.client,
-			userId: "owner-1",
+			userId: ownerId,
 		});
 
-		await expect(createUploadUrl("invitation-1", "gallery")).rejects.toThrow(
+		await expect(createUploadUrl(invitationId, "gallery")).rejects.toThrow(
 			"Jenis foto tidak valid",
 		);
 		expect(supabase.createSignedUploadUrl).not.toHaveBeenCalled();
@@ -88,13 +98,25 @@ describe("invitation photo upload actions", () => {
 		const supabase = createSupabase();
 		mocks.requireAuthenticatedMutation.mockResolvedValue({
 			supabase: supabase.client,
-			userId: "owner-1",
+			userId: ownerId,
 		});
 
-		await updateInvitationPhotoPath("invitation-1", "bride");
+		await updateInvitationPhotoPath(invitationId, "bride");
 
 		expect(supabase.update).toHaveBeenCalledWith({
-			bride_photo_path: "owner-1/invitation-1/couple/bride.webp",
+			bride_photo_path: `${ownerId}/${invitationId}/couple/bride.webp`,
 		});
+	});
+
+	it("rejects malformed invitation identifiers before signing", async () => {
+		const supabase = createSupabase();
+		mocks.requireAuthenticatedMutation.mockResolvedValue({
+			supabase: supabase.client,
+			userId: ownerId,
+		});
+		await expect(createUploadUrl("../foreign", "cover")).rejects.toThrow(
+			"Undangan tidak valid",
+		);
+		expect(supabase.createSignedUploadUrl).not.toHaveBeenCalled();
 	});
 });

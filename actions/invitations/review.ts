@@ -2,7 +2,11 @@
 
 import { mapInvitationViewModel } from "../../features/invitation-builder/review/map-invitation-view-model";
 import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
-import { invitationAssetsBucket } from "../../lib/storage/invitation-music";
+import {
+	authorizeCanonicalAssetPath,
+	createAuthorizedSignedReadUrls,
+	requireOwnedInvitationAssetContext,
+} from "../../lib/storage/authorized-assets";
 import {
 	collectCanonicalPreviewPaths,
 	previewAssetTtlSeconds,
@@ -89,11 +93,12 @@ async function loadChildren(supabase: SupabaseClient, invitationId: string) {
 }
 
 export async function getOwnedInvitationReview(invitationId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const { supabase, userId } = context;
 	const row = await requireOwnedReviewInvitation(
 		supabase,
 		userId,
-		invitationId,
+		context.invitationId,
 	);
 	const theme = relation(row.themes);
 	const tier = relation(theme?.tiers);
@@ -138,18 +143,11 @@ export async function getOwnedInvitationReview(invitationId: string) {
 		stories,
 		gallery,
 	);
-	const signedUrls: Record<string, string> = {};
-	if (paths.length > 0) {
-		const { data, error } = await supabase.storage
-			.from(invitationAssetsBucket)
-			.createSignedUrls(paths, previewAssetTtlSeconds);
-		if (error || !data) throw new Error("Gagal mengotorisasi asset preview.");
-		for (const signed of data) {
-			if (signed.path && signed.signedUrl) {
-				signedUrls[signed.path] = signed.signedUrl;
-			}
-		}
-	}
+	const signedUrls = await createAuthorizedSignedReadUrls(
+		context,
+		paths.map((path) => authorizeCanonicalAssetPath(context, path)),
+		previewAssetTtlSeconds,
+	);
 
 	const viewModel = mapInvitationViewModel({
 		ownerId: userId,

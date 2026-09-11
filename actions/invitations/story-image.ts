@@ -1,6 +1,14 @@
 "use server";
 
-import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import {
+	authorizeCanonicalAssetPath,
+	createAuthorizedSignedUploadUrl,
+	requireOwnedInvitationAssetContext,
+} from "../../lib/storage/authorized-assets";
+import {
+	getInvitationAssetStorage,
+	requireStoredOptimizedImage,
+} from "../../lib/storage/image-metadata";
 import { getStoryImagePath } from "../../lib/storage/story-image";
 import {
 	storyIdSchema,
@@ -8,37 +16,32 @@ import {
 } from "../../validations/story";
 
 async function requireOwnedStory(invitationId: string, storyId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const parsedInvitationId = storyInvitationIdSchema.safeParse(invitationId);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const parsedInvitationId = storyInvitationIdSchema.safeParse(
+		context.invitationId,
+	);
 	const parsedStoryId = storyIdSchema.safeParse(storyId);
 	if (!parsedInvitationId.success || !parsedStoryId.success) {
 		throw new Error("Cerita tidak valid.");
 	}
 
-	const { data: invitation, error: invitationError } = await supabase
-		.from("invitations")
-		.select("id")
-		.eq("id", parsedInvitationId.data)
-		.eq("couple_id", userId)
-		.maybeSingle();
-	if (invitationError || !invitation) {
-		throw new Error("Tidak memiliki akses ke undangan ini.");
-	}
-
-	const { data: story, error: storyError } = await supabase
+	const { data: story, error: storyError } = await context.supabase
 		.from("stories")
 		.select("id")
 		.eq("id", parsedStoryId.data)
-		.eq("invitation_id", invitation.id)
+		.eq("invitation_id", context.invitationId)
 		.maybeSingle();
 	if (storyError || !story) {
 		throw new Error("Cerita tidak ditemukan pada undangan ini.");
 	}
 
+	const path = authorizeCanonicalAssetPath(
+		context,
+		getStoryImagePath(context.userId, context.invitationId, story.id),
+	);
 	return {
-		supabase,
-		path: getStoryImagePath(userId, invitation.id, story.id),
-		invitationId: invitation.id,
+		...context,
+		path,
 		storyId: story.id,
 	};
 }
@@ -48,15 +51,19 @@ export async function createStoryImageUploadUrl(
 	storyId: string,
 ) {
 	const owned = await requireOwnedStory(invitationId, storyId);
-	const { data, error } = await owned.supabase.storage
-		.from("invitation-assets")
-		.createSignedUploadUrl(owned.path, { upsert: true });
-	if (error || !data) throw new Error("Gagal membuat upload URL cerita.");
-	return { signedUrl: data.signedUrl };
+	const signedUrl = await createAuthorizedSignedUploadUrl(owned, owned.path, {
+		errorMessage: "Gagal membuat upload URL cerita.",
+		upsert: true,
+	});
+	return { signedUrl };
 }
 
 export async function persistStoryImage(invitationId: string, storyId: string) {
 	const owned = await requireOwnedStory(invitationId, storyId);
+	await requireStoredOptimizedImage(
+		getInvitationAssetStorage(owned.supabase),
+		owned.path,
+	);
 	const { error } = await owned.supabase
 		.from("stories")
 		.update({ image_path: owned.path })

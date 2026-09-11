@@ -14,14 +14,15 @@
 - 10-builder-interactions: authenticated invitation interaction-config read/update, independent RSVP and Wishes boolean persistence, and persisted builder state loading.
 - 11-builder-music: authenticated private background-audio upload, server-authoritative canonical persistence, safe replace/remove lifecycle, and user-gesture signed preview playback.
 - 12-builder-review: authenticated owner-only review and private theme preview from persisted data, server-resolved commercial summary, signed private assets, builder resume, and safe checkout boundary.
+- 13-storage: private invitation-assets bucket, invitation-relation Storage policies, centralized canonical authorization and signed operations, verified optimized-image metadata, hardened shared browser compression, and retry-safe structured cleanup primitives.
 
 ## Current
 
-Task 12 is complete. Task 13 has not been started.
+Task 13 is complete. Task 14 has not been started.
 
 ## Pending
 
-13 through 20-production-hardening.
+14 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -39,6 +40,7 @@ Task 12 is complete. Task 13 has not been started.
 - [x] **10**: Builder Interaction Config
 - [x] **11**: Builder Music
 - [x] **12**: Builder Review & Preview
+- [x] **13**: Storage Hardening
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
@@ -61,6 +63,8 @@ None.
 - The standard lint script does not include every Task 10 source directory; all Task 10 implementation files are additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 11 source directory; all Task 11 implementation files are additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 12 source directory; all Task 12 implementation files are additionally covered by a read-only targeted Biome check.
+- The standard lint script does not include every Task 13 source directory; all Task 13 application files are additionally covered by a read-only targeted Biome check.
+- The Supabase Security Advisor connector was unavailable to the connected identity during Task 13; bucket, policy, grant, RLS, migration, and effective Storage API behavior were instead verified directly against the dedicated development project.
 
 ## Environment Constraints
 

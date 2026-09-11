@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({ requireAuthenticatedMutation: vi.fn() }));
 vi.mock("../../lib/auth/authorization", () => ({
 	requireAuthenticatedMutation: mocks.requireAuthenticatedMutation,
@@ -124,6 +126,7 @@ describe("music actions", () => {
 
 	it("keeps new music authoritative when stale cleanup fails", async () => {
 		database.invitations[0].music_path = mp3Path;
+		database.objects.set(mp3Path, { size: 10, contentType: "audio/mpeg" });
 		database.objects.set(oggPath, { size: 20, contentType: "audio/ogg" });
 		database.removeError = { status: 500 };
 		const result = await persistUploadedMusic(invitationId, ogg);

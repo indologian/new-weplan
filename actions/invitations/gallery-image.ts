@@ -1,7 +1,17 @@
 "use server";
 
-import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import type { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import {
+	authorizeCanonicalAssetPath,
+	createAuthorizedSignedUploadUrl,
+	requireOwnedInvitationAssetContext,
+} from "../../lib/storage/authorized-assets";
+import { cleanupAuthorizedAssets } from "../../lib/storage/cleanup";
 import { getGalleryImagePath } from "../../lib/storage/gallery-image";
+import {
+	getInvitationAssetStorage,
+	requireStoredOptimizedImage,
+} from "../../lib/storage/image-metadata";
 import {
 	galleryInvitationIdSchema,
 	galleryItemIdSchema,
@@ -27,10 +37,8 @@ async function getCapacity(
 }
 
 export async function createGalleryImageUploadUrl(invitationId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const parsedInvitationId = galleryInvitationIdSchema.safeParse(invitationId);
-	if (!parsedInvitationId.success) throw new Error("Undangan tidak valid.");
-	const capacity = await getCapacity(supabase, parsedInvitationId.data);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const capacity = await getCapacity(context.supabase, context.invitationId);
 	if (
 		Number(capacity.current_gallery_images) >=
 		Number(capacity.max_gallery_images)
@@ -39,45 +47,38 @@ export async function createGalleryImageUploadUrl(invitationId: string) {
 	}
 
 	const galleryItemId = crypto.randomUUID();
-	const path = getGalleryImagePath(
-		userId,
-		parsedInvitationId.data,
-		galleryItemId,
+	const path = authorizeCanonicalAssetPath(
+		context,
+		getGalleryImagePath(context.userId, context.invitationId, galleryItemId),
 	);
-	const { data, error } = await supabase.storage
-		.from("invitation-assets")
-		.createSignedUploadUrl(path, { upsert: true });
-	if (error || !data) throw new Error("Gagal membuat upload URL galeri.");
-	return { galleryItemId, signedUrl: data.signedUrl };
+	const signedUrl = await createAuthorizedSignedUploadUrl(context, path, {
+		errorMessage: "Gagal membuat upload URL galeri.",
+		upsert: true,
+	});
+	return { galleryItemId, signedUrl };
 }
 
 export async function persistGalleryImage(
 	invitationId: string,
 	galleryItemId: string,
 ) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const { supabase, userId } = context;
 	const parsedInvitationId = galleryInvitationIdSchema.safeParse(invitationId);
 	const parsedItemId = galleryItemIdSchema.safeParse(galleryItemId);
 	if (!parsedInvitationId.success || !parsedItemId.success) {
 		throw new Error("Data gambar galeri tidak valid.");
 	}
-	await getCapacity(supabase, parsedInvitationId.data);
-	const path = getGalleryImagePath(
-		userId,
-		parsedInvitationId.data,
-		parsedItemId.data,
+	await getCapacity(supabase, context.invitationId);
+	const path = authorizeCanonicalAssetPath(
+		context,
+		getGalleryImagePath(userId, context.invitationId, parsedItemId.data),
 	);
-	const folder = `${userId}/${parsedInvitationId.data}/gallery`;
-	const filename = `${parsedItemId.data}.webp`;
-	const { data: objects, error: listError } = await supabase.storage
-		.from("invitation-assets")
-		.list(folder, { limit: 1, search: filename });
-	if (listError || !objects?.some(({ name }) => name === filename)) {
-		throw new Error("Gambar galeri belum berhasil diunggah.");
-	}
+	const storage = getInvitationAssetStorage(supabase);
+	await requireStoredOptimizedImage(storage, path);
 
 	const { data, error } = await supabase.rpc("create_gallery_item_atomic", {
-		p_invitation_id: parsedInvitationId.data,
+		p_invitation_id: context.invitationId,
 		p_gallery_item_id: parsedItemId.data,
 		p_media_type: "image",
 		p_youtube_video_id: null,
@@ -88,10 +89,14 @@ export async function persistGalleryImage(
 		.from("gallery_items")
 		.select("id,type,image_path,youtube_video_id,sort_order")
 		.eq("id", parsedItemId.data)
-		.eq("invitation_id", parsedInvitationId.data)
+		.eq("invitation_id", context.invitationId)
 		.maybeSingle();
 	if (committedItem) return committedItem;
 
-	await supabase.storage.from("invitation-assets").remove([path]);
-	throw getGalleryActionError(error);
+	const cleanup = await cleanupAuthorizedAssets(storage, [path]);
+	const actionError = getGalleryActionError(error);
+	if (cleanup.outcome === "partial-failure") {
+		throw new Error(`${actionError.message} Gambar orphan gagal dibersihkan.`);
+	}
+	throw actionError;
 }

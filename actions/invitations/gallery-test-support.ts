@@ -121,6 +121,13 @@ export class GalleryTestDatabase {
 		}),
 		storage: {
 			from: vi.fn(() => ({
+				info: async (path: string) =>
+					this.objects.has(path)
+						? {
+								data: { size: 100, contentType: "image/webp" },
+								error: null,
+							}
+						: { data: null, error: { status: 404 } },
 				createSignedUploadUrl: async (path: string) => {
 					this.signedPaths.push(path);
 					return {

@@ -1,6 +1,8 @@
 "use server";
 
 import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import { authorizeCanonicalAssetPath } from "../../lib/storage/authorized-assets";
+import { cleanupAuthorizedAssets } from "../../lib/storage/cleanup";
 import { getStoryImagePath } from "../../lib/storage/story-image";
 import {
 	reorderStoriesSchema,
@@ -171,11 +173,17 @@ export async function deleteStory(invitationId: string, storyId: string) {
 	);
 
 	if (ownedStory.image_path !== null) {
-		const path = getStoryImagePath(userId, ownedInvitationId, ownedStory.id);
-		const { error: storageError } = await supabase.storage
-			.from("invitation-assets")
-			.remove([path]);
-		if (storageError) throw new Error("Gagal menghapus gambar cerita.");
+		const path = authorizeCanonicalAssetPath(
+			{ userId, invitationId: ownedInvitationId },
+			getStoryImagePath(userId, ownedInvitationId, ownedStory.id),
+		);
+		const cleanup = await cleanupAuthorizedAssets(
+			supabase.storage.from("invitation-assets"),
+			[path],
+		);
+		if (cleanup.outcome === "partial-failure") {
+			throw new Error("Gagal menghapus gambar cerita.");
+		}
 	}
 
 	const { error } = await supabase

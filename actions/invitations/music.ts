@@ -1,6 +1,12 @@
 "use server";
 
-import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import {
+	authorizeCanonicalAssetPath,
+	createAuthorizedSignedUploadUrl,
+	type OwnedInvitationAssetContext,
+	requireOwnedInvitationAssetContext,
+} from "../../lib/storage/authorized-assets";
+import { cleanupAuthorizedAssets } from "../../lib/storage/cleanup";
 import {
 	getCanonicalMusicExtension,
 	getInvitationMusicPath,
@@ -12,28 +18,22 @@ import {
 	parseMusicMetadata,
 } from "../../validations/music";
 
-type AuthenticatedSupabase = Awaited<
-	ReturnType<typeof requireAuthenticatedMutation>
->["supabase"];
-
 type OwnedInvitation = {
 	id: string;
 	musicPath: string | null;
 };
 
 async function requireOwnedInvitation(
-	supabase: AuthenticatedSupabase,
-	userId: string,
-	invitationId: string,
+	context: OwnedInvitationAssetContext,
 ): Promise<OwnedInvitation> {
-	const parsedId = musicInvitationIdSchema.safeParse(invitationId);
+	const parsedId = musicInvitationIdSchema.safeParse(context.invitationId);
 	if (!parsedId.success) throw new Error("Undangan tidak valid.");
 
-	const { data, error } = await supabase
+	const { data, error } = await context.supabase
 		.from("invitations")
 		.select("id,music_path")
 		.eq("id", parsedId.data)
-		.eq("couple_id", userId)
+		.eq("couple_id", context.userId)
 		.maybeSingle();
 	if (error || !data) throw new Error("Tidak memiliki akses ke undangan ini.");
 
@@ -43,19 +43,9 @@ async function requireOwnedInvitation(
 	};
 }
 
-function isMissingObjectError(error: unknown) {
-	if (!error || typeof error !== "object") return false;
-	const candidate = error as { status?: number; statusCode?: string | number };
-	return candidate.status === 404 || Number(candidate.statusCode) === 404;
-}
-
 export async function getMusicState(invitationId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const invitation = await requireOwnedInvitation(
-		supabase,
-		userId,
-		invitationId,
-	);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const invitation = await requireOwnedInvitation(context);
 	return { hasMusic: invitation.musicPath !== null };
 }
 
@@ -63,36 +53,31 @@ export async function createMusicUploadUrl(
 	invitationId: string,
 	metadata: unknown,
 ) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const invitation = await requireOwnedInvitation(
-		supabase,
-		userId,
-		invitationId,
-	);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const invitation = await requireOwnedInvitation(context);
 	const audio = parseMusicMetadata(metadata);
-	const path = getInvitationMusicPath(userId, invitation.id, audio.extension);
-	const { data, error } = await supabase.storage
-		.from(invitationAssetsBucket)
-		.createSignedUploadUrl(path, { upsert: true });
-	if (error || !data) throw new Error("Gagal membuat upload URL audio.");
-	return { signedUrl: data.signedUrl };
+	const path = authorizeCanonicalAssetPath(
+		context,
+		getInvitationMusicPath(context.userId, invitation.id, audio.extension),
+	);
+	const signedUrl = await createAuthorizedSignedUploadUrl(context, path, {
+		errorMessage: "Gagal membuat upload URL audio.",
+		upsert: true,
+	});
+	return { signedUrl };
 }
 
 export async function persistUploadedMusic(
 	invitationId: string,
 	metadata: unknown,
 ) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const invitation = await requireOwnedInvitation(
-		supabase,
-		userId,
-		invitationId,
-	);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const { supabase, userId } = context;
+	const invitation = await requireOwnedInvitation(context);
 	const audio = parseMusicMetadata(metadata);
-	const newPath = getInvitationMusicPath(
-		userId,
-		invitation.id,
-		audio.extension,
+	const newPath = authorizeCanonicalAssetPath(
+		context,
+		getInvitationMusicPath(userId, invitation.id, audio.extension),
 	);
 	const storage = supabase.storage.from(invitationAssetsBucket);
 	const { data: object, error: objectError } = await storage.info(newPath);
@@ -120,10 +105,12 @@ export async function persistUploadedMusic(
 			invitation.id,
 		);
 		if (oldExtension) {
-			const { error: cleanupError } = await storage.remove([
+			const oldPath = authorizeCanonicalAssetPath(
+				context,
 				invitation.musicPath,
-			]);
-			if (cleanupError) {
+			);
+			const cleanup = await cleanupAuthorizedAssets(storage, [oldPath]);
+			if (cleanup.outcome === "partial-failure") {
 				cleanupWarning =
 					"Audio baru tersimpan, tetapi audio lama gagal dibersihkan.";
 			}
@@ -134,12 +121,9 @@ export async function persistUploadedMusic(
 }
 
 export async function removeMusic(invitationId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const invitation = await requireOwnedInvitation(
-		supabase,
-		userId,
-		invitationId,
-	);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const { supabase, userId } = context;
+	const invitation = await requireOwnedInvitation(context);
 	if (!invitation.musicPath) return { hasMusic: false };
 
 	const extension = getCanonicalMusicExtension(
@@ -149,10 +133,12 @@ export async function removeMusic(invitationId: string) {
 	);
 	if (!extension) throw new Error("Path audio tersimpan tidak valid.");
 
-	const { error: removeError } = await supabase.storage
-		.from(invitationAssetsBucket)
-		.remove([invitation.musicPath]);
-	if (removeError && !isMissingObjectError(removeError)) {
+	const path = authorizeCanonicalAssetPath(context, invitation.musicPath);
+	const cleanup = await cleanupAuthorizedAssets(
+		supabase.storage.from(invitationAssetsBucket),
+		[path],
+	);
+	if (cleanup.outcome === "partial-failure") {
 		throw new Error("Gagal menghapus audio undangan.");
 	}
 
@@ -168,12 +154,9 @@ export async function removeMusic(invitationId: string) {
 }
 
 export async function createMusicPreviewUrl(invitationId: string) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	const invitation = await requireOwnedInvitation(
-		supabase,
-		userId,
-		invitationId,
-	);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
+	const { supabase, userId } = context;
+	const invitation = await requireOwnedInvitation(context);
 	if (!invitation.musicPath) throw new Error("Audio belum dipilih.");
 	if (
 		!getCanonicalMusicExtension(invitation.musicPath, userId, invitation.id)

@@ -1,70 +1,57 @@
 "use server";
 
-import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import {
+	authorizeCanonicalAssetPath,
+	createAuthorizedSignedUploadUrl,
+	requireOwnedInvitationAssetContext,
+} from "../../lib/storage/authorized-assets";
+import {
+	getInvitationAssetStorage,
+	requireStoredOptimizedImage,
+} from "../../lib/storage/image-metadata";
 import {
 	getInvitationPhotoDestination,
 	parseInvitationPhotoType,
 } from "../../lib/storage/invitation-photo";
 
-async function requireOwnedInvitation(
-	invitationId: string,
-	supabase: Awaited<
-		ReturnType<typeof requireAuthenticatedMutation>
-	>["supabase"],
-	userId: string,
-) {
-	const { data: invitation, error } = await supabase
-		.from("invitations")
-		.select("id")
-		.eq("id", invitationId)
-		.eq("couple_id", userId)
-		.maybeSingle();
-
-	if (error || !invitation) {
-		throw new Error("Tidak memiliki akses ke undangan ini.");
-	}
-}
-
 export async function createUploadUrl(invitationId: string, type: unknown) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	await requireOwnedInvitation(invitationId, supabase, userId);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
 	const photoType = parseInvitationPhotoType(type);
-	const { path } = getInvitationPhotoDestination(
-		userId,
-		invitationId,
+	const destination = getInvitationPhotoDestination(
+		context.userId,
+		context.invitationId,
 		photoType,
 	);
-
-	// Create signed upload URL
-	const { data, error: uploadError } = await supabase.storage
-		.from("invitation-assets")
-		.createSignedUploadUrl(path);
-
-	if (uploadError || !data) {
-		throw new Error("Gagal membuat upload URL.");
-	}
-
-	return { signedUrl: data.signedUrl };
+	const path = authorizeCanonicalAssetPath(context, destination.path);
+	const signedUrl = await createAuthorizedSignedUploadUrl(context, path, {
+		errorMessage: "Gagal membuat upload URL.",
+		upsert: true,
+	});
+	return { signedUrl };
 }
 
 export async function updateInvitationPhotoPath(
 	invitationId: string,
 	type: unknown,
 ) {
-	const { supabase, userId } = await requireAuthenticatedMutation();
-	await requireOwnedInvitation(invitationId, supabase, userId);
+	const context = await requireOwnedInvitationAssetContext(invitationId);
 	const photoType = parseInvitationPhotoType(type);
-	const { column, path } = getInvitationPhotoDestination(
-		userId,
-		invitationId,
+	const destination = getInvitationPhotoDestination(
+		context.userId,
+		context.invitationId,
 		photoType,
 	);
+	const path = authorizeCanonicalAssetPath(context, destination.path);
+	await requireStoredOptimizedImage(
+		getInvitationAssetStorage(context.supabase),
+		path,
+	);
 
-	const { error } = await supabase
+	const { error } = await context.supabase
 		.from("invitations")
-		.update({ [column]: path })
-		.eq("id", invitationId)
-		.eq("couple_id", userId);
+		.update({ [destination.column]: path })
+		.eq("id", context.invitationId)
+		.eq("couple_id", context.userId);
 
 	if (error) {
 		throw new Error("Gagal memperbarui path foto.");

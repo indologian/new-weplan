@@ -1,6 +1,8 @@
 "use server";
 
 import { requireAuthenticatedMutation } from "../../lib/auth/authorization";
+import { authorizeCanonicalAssetPath } from "../../lib/storage/authorized-assets";
+import { cleanupAuthorizedAssets } from "../../lib/storage/cleanup";
 import { getGalleryImagePath } from "../../lib/storage/gallery-image";
 import {
 	type GalleryItem,
@@ -119,11 +121,17 @@ export async function deleteGalleryItem(invitationId: string, itemId: string) {
 	const ownedId = await requireOwnedInvitation(supabase, userId, invitationId);
 	const item = await requireOwnedItem(supabase, ownedId, itemId);
 	if (item.type === "image") {
-		const path = getGalleryImagePath(userId, ownedId, String(item.id));
-		const { error } = await supabase.storage
-			.from("invitation-assets")
-			.remove([path]);
-		if (error) throw new Error("Gagal membersihkan gambar galeri.");
+		const path = authorizeCanonicalAssetPath(
+			{ userId, invitationId: ownedId },
+			getGalleryImagePath(userId, ownedId, String(item.id)),
+		);
+		const cleanup = await cleanupAuthorizedAssets(
+			supabase.storage.from("invitation-assets"),
+			[path],
+		);
+		if (cleanup.outcome === "partial-failure") {
+			throw new Error("Gagal membersihkan gambar galeri.");
+		}
 	}
 	const { error } = await supabase
 		.from("gallery_items")
