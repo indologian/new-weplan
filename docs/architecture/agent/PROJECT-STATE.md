@@ -16,14 +16,15 @@
 - 12-builder-review: authenticated owner-only review and private theme preview from persisted data, server-resolved commercial summary, signed private assets, builder resume, and safe checkout boundary.
 - 13-storage: private invitation-assets bucket, invitation-relation Storage policies, centralized canonical authorization and signed operations, verified optimized-image metadata, hardened shared browser compression, and retry-safe structured cleanup primitives.
 - 14-couple-dashboard: authenticated owner-scoped overview and invitation management, secure guest token CRUD/link recovery, deterministic RSVP summaries, owned Wishes deletion, and reuse of Gifts, interaction settings, builder resume, and private preview boundaries.
+- 15-public-invitation: token-gated public invitation rendering, server-only lifecycle and guest authorization, allowlisted theme resolution, signed private assets, personalized guest presentation, and read-only RSVP/Wishes display.
 
 ## Current
 
-Task 14 is complete. Task 15 has not been started.
+Task 15 is complete. Task 16 has not been started.
 
 ## Pending
 
-14 through 20-production-hardening.
+16 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -43,6 +44,7 @@ Task 14 is complete. Task 15 has not been started.
 - [x] **12**: Builder Review & Preview
 - [x] **13**: Storage Hardening
 - [x] **14**: Couple Dashboard
+- [x] **15**: Public Invitation
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery

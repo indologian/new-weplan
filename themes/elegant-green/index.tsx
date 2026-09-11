@@ -24,6 +24,7 @@ import { Wishes } from "./sections/wishes";
 export function ElegantGreenTheme({
 	invitation,
 	invitee,
+	onOpen,
 }: InvitationThemeProps) {
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -34,7 +35,10 @@ export function ElegantGreenTheme({
 					<OpenInvitation
 						invitation={invitation}
 						invitee={invitee}
-						onOpen={() => setIsOpen(true)}
+						onOpen={() => {
+							setIsOpen(true);
+							onOpen?.();
+						}}
 					/>
 				</div>
 			</MotionConfig>
