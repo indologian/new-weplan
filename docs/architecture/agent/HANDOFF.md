@@ -2,93 +2,76 @@
 
 ## Task
 
-13 — Storage Hardening
+14 — Couple Dashboard
 
 ## Completed
 
-- Created and remotely applied the private `invitation-assets` bucket with a 10 MiB infrastructure limit and the approved WebP/audio MIME allowlist.
-- Added authenticated `SELECT`, `INSERT`, `UPDATE`, and `DELETE` Storage policies that require both the caller UUID path segment and database-backed invitation ownership.
-- Restricted policies to the approved canonical photo, story, gallery, and music paths; malformed and arbitrary owned subtrees are denied.
-- Centralized invitation validation/ownership, canonical-path authorization, signed upload generation, and batch signed-read generation.
-- Added post-upload image metadata verification for canonical path, object existence, `image/webp`, and optimized size at or below 500 KiB. This is metadata verification, not byte-level inspection.
-- Hardened the existing browser compressor to reject a Blob whose reported MIME is not WebP while retaining the 10 MiB input, 1920px dimension, bounded compression, and 500 KiB output contracts.
-- Added server-only cleanup primitives for canonical objects, batches, compensating cleanup, and paginated invitation-prefix cleanup using trusted owner/invitation identifiers.
-- Migrated photo, Story, Gallery, Music, and private review Storage operations to the shared boundaries without changing domain-specific authorization, entitlement, atomic persistence, replacement, or preview behavior.
-- Preserved Gallery committed-result detection before compensating cleanup and Music new-path authority when stale cleanup fails.
+- Replaced the placeholder couple page with an authenticated dashboard covering Overview, Invitations, Guests, RSVP, Wishes, Gifts, and Settings.
+- Added owner-scoped multi-invitation reads and global overview aggregates without querying or mutating transactions.
+- Reused existing builder resume/private preview navigation, Task 09 Gifts, and Task 10 Interaction Config.
+- Added guest create, rename, delete, Copy Link, and Regenerate Link actions with explicit invitation and child ownership checks.
+- Added 256-bit URL-safe guest tokens, SHA-256 lookup hashes, and AES-256-GCM encrypted recovery using a fail-closed server-only Base64 key.
+- Copy Link is repeatable and read-only. Regenerate replaces hash and ciphertext in one row update, making the previous hash non-authoritative.
+- Added owner-scoped Wishes presentation/deletion and deterministic RSVP summaries derived from guests and persisted RSVP rows.
 
 ## Files created
 
-- `lib/storage/authorized-assets.ts`
-- `lib/storage/authorized-assets.test.ts`
-- `lib/storage/image-metadata.ts`
-- `lib/storage/image-metadata.test.ts`
-- `lib/storage/cleanup.ts`
-- `lib/storage/cleanup.test.ts`
-- `supabase/migrations/20260911113524_task13_storage_hardening.sql`
-- `supabase/tests/database/storage-security.test.sql`
+- `actions/dashboard/dashboard.ts`
+- `actions/dashboard/dashboard.test.ts`
+- `actions/dashboard/dashboard-test-support.ts`
+- `actions/dashboard/shared.ts`
+- `actions/dashboard/guests.ts`
+- `actions/dashboard/guests.test.ts`
+- `actions/dashboard/wishes.ts`
+- `actions/dashboard/wishes.test.ts`
+- `features/couple-dashboard/components/couple-dashboard.tsx`
+- `features/couple-dashboard/components/dashboard-navigation.tsx`
+- `features/couple-dashboard/components/overview-section.tsx`
+- `features/couple-dashboard/components/invitations-section.tsx`
+- `features/couple-dashboard/components/invitations-section.test.tsx`
+- `features/couple-dashboard/components/guests-section.tsx`
+- `features/couple-dashboard/components/rsvp-section.tsx`
+- `features/couple-dashboard/components/wishes-section.tsx`
+- `features/couple-dashboard/components/settings-section.tsx`
+- `lib/dashboard/authorization.ts`
+- `lib/dashboard/invitee-token.ts`
+- `lib/dashboard/invitee-token.test.ts`
+- `validations/dashboard.ts`
+- `validations/dashboard.test.ts`
 
 ## Files changed
 
-- `actions/invitations/upload.ts`
-- `actions/invitations/upload.test.ts`
-- `actions/invitations/story-image.ts`
-- `actions/invitations/story-image.test.ts`
-- `actions/invitations/story-test-support.ts`
-- `actions/invitations/stories.ts`
-- `actions/invitations/stories.test.ts`
-- `actions/invitations/gallery-image.ts`
-- `actions/invitations/gallery-image.test.ts`
-- `actions/invitations/gallery-test-support.ts`
-- `actions/invitations/gallery.ts`
-- `actions/invitations/gallery.test.ts`
-- `actions/invitations/music.ts`
-- `actions/invitations/music.test.ts`
-- `actions/invitations/review.ts`
-- `actions/invitations/review.test.ts`
-- `features/invitation-builder/utils/image.ts`
-- `features/invitation-builder/utils/image.test.ts`
+- `app/dashboard/couple/page.tsx`
 - `docs/architecture/agent/PROJECT-STATE.md`
 - `docs/architecture/agent/HANDOFF.md`
 
-## Dependencies
+## Dependencies, database, and Storage
 
-None added or changed. Temporary PostgreSQL inspection tooling remained outside the repository.
-
-## Database and Storage
-
-- Migration `20260911113524_task13_storage_hardening.sql` was applied atomically and recorded in migration history on the dedicated remote Supabase development project.
-- `invitation-assets` is private, has a `10485760` byte bucket limit, and contains only the approved MIME allowlist.
-- Four policies target only `authenticated`; `anon` receives no policy. `UPDATE` has both `USING` and `WITH CHECK`.
-- Ownership requires canonical first segment = `auth.uid()` and second segment = an invitation whose `couple_id = auth.uid()`.
-- No business schema, domain RLS, payment, invitee/public flow, or dependency was changed.
+- No dependency or lockfile changes.
+- No schema, migration, RLS, grant, RPC, bucket, or Storage changes.
+- No public invitee, public RSVP/Wishes, payment, transaction, or invitation lifecycle mutation was added.
 
 ## Tests and validation
 
-- Focused Task 13 application/Storage regressions: pass, 16 files and 86 tests.
-- Full `npm run test`: pass, 48 files and 241 tests.
+- Focused Task 14 plus Task 09/10/12 regressions: pass, 10 files and 53 tests.
+- Full `npm run test`: pass, 54 files and 269 tests.
 - `npm run typecheck`: pass.
-- `npm run lint`: pass, 54 standard-scope files checked.
-- Targeted read-only Biome: pass, 24 Task 13 application files with zero diagnostics.
+- `npm run lint`: pass, 57 standard-scope files checked.
+- Targeted read-only Biome: pass, 23 Task 14 implementation files.
 - `npm run build`: pass.
-- Remote Task 13 Storage pgTAP: pass, 21 assertions.
-- Existing remote ownership pgTAP: pass, 17 assertions.
-- Existing remote Gallery security/entitlement pgTAP: pass, 28 assertions.
-- Remote Storage API integration: pass, 16 checks covering owner CRUD, anon denial, foreign-owner denial, canonical ownership, arbitrary subtree rejection, move boundary, and effective deletion.
-- Post-test fixture cleanup verification: pass; no Task 13 auth, theme, or Storage fixtures remain.
-- Supabase Security Advisor could not be queried because the connected MCP identity lacks project permission.
+- Scoped diff, credential, dependency, schema/RLS, and staged-file reviews: pass.
 
 ## Known issues
 
-- Stored image verification checks Storage object existence, size, and MIME metadata only. It does not claim byte-level WebP verification; server downloads or binary parsing would require a separate architecture decision.
-- The Supabase Security Advisor connector remains unavailable to the connected identity.
+- The standard lint script does not include every Task 14 source directory; all Task 14 implementation files are additionally covered by targeted read-only Biome.
 
 ## Blockers
 
-None for Task 13.
+None.
 
 ## Notes for next agent
 
-- `cleanupOwnedInvitationAssets` is the owner-facing cleanup entry and verifies ownership before privileged prefix cleanup. `cleanupTrustedInvitationAssets` is server-only and accepts trusted lifecycle identifiers, never a browser-supplied path or prefix.
-- Signed URLs remain temporary presentation values and are not persisted.
-- Existing user-owned changes in `docs/architecture/agent/CURRENT-TASK.md` and Task 10–13 documents are excluded from the Task 13 commit.
-- Do not begin Task 14 without explicit authorization.
+- `INVITEE_TOKEN_ENCRYPTION_KEY` must be valid Base64 decoding to exactly 32 bytes; there is no fallback key.
+- Guest personal links are returned as application-relative paths and raw tokens are never persisted or logged.
+- Existing user-owned changes in `CURRENT-TASK.md` and Task 10–14 documents remain untouched and excluded from this commit.
+- Do not begin Task 15 without explicit authorization.

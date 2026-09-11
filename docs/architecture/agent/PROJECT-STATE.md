@@ -15,10 +15,11 @@
 - 11-builder-music: authenticated private background-audio upload, server-authoritative canonical persistence, safe replace/remove lifecycle, and user-gesture signed preview playback.
 - 12-builder-review: authenticated owner-only review and private theme preview from persisted data, server-resolved commercial summary, signed private assets, builder resume, and safe checkout boundary.
 - 13-storage: private invitation-assets bucket, invitation-relation Storage policies, centralized canonical authorization and signed operations, verified optimized-image metadata, hardened shared browser compression, and retry-safe structured cleanup primitives.
+- 14-couple-dashboard: authenticated owner-scoped overview and invitation management, secure guest token CRUD/link recovery, deterministic RSVP summaries, owned Wishes deletion, and reuse of Gifts, interaction settings, builder resume, and private preview boundaries.
 
 ## Current
 
-Task 13 is complete. Task 14 has not been started.
+Task 14 is complete. Task 15 has not been started.
 
 ## Pending
 
@@ -41,6 +42,7 @@ Task 13 is complete. Task 14 has not been started.
 - [x] **11**: Builder Music
 - [x] **12**: Builder Review & Preview
 - [x] **13**: Storage Hardening
+- [x] **14**: Couple Dashboard
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
