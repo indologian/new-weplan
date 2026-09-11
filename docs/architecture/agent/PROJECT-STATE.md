@@ -17,14 +17,15 @@
 - 13-storage: private invitation-assets bucket, invitation-relation Storage policies, centralized canonical authorization and signed operations, verified optimized-image metadata, hardened shared browser compression, and retry-safe structured cleanup primitives.
 - 14-couple-dashboard: authenticated owner-scoped overview and invitation management, secure guest token CRUD/link recovery, deterministic RSVP summaries, owned Wishes deletion, and reuse of Gifts, interaction settings, builder resume, and private preview boundaries.
 - 15-public-invitation: token-gated public invitation rendering, server-only lifecycle and guest authorization, allowlisted theme resolution, signed private assets, personalized guest presentation, and read-only RSVP/Wishes display.
+- 16-rsvp-wishes: shared token/lifecycle authorization, public RSVP and Wishes APIs, atomic edit-own persistence, lifecycle/config enforcement, safe Wishes presentation, and end-to-end public interaction UI.
 
 ## Current
 
-Task 15 is complete. Task 16 has not been started.
+Task 16 is complete. Task 17 has not been started.
 
 ## Pending
 
-16 through 20-production-hardening.
+17 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -45,6 +46,7 @@ Task 15 is complete. Task 16 has not been started.
 - [x] **13**: Storage Hardening
 - [x] **14**: Couple Dashboard
 - [x] **15**: Public Invitation
+- [x] **16**: RSVP & Wishes
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery

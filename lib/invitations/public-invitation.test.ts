@@ -60,7 +60,7 @@ describe("public invitation authorization", () => {
 		await load();
 		expect(database.selects[0]).toEqual({
 			table: "invitation_guests",
-			columns: "invitation_id,name",
+			columns: "id,invitation_id,name",
 		});
 		expect(
 			database.selects.some(({ columns }) =>
@@ -125,7 +125,7 @@ describe("public invitation authorization", () => {
 	it("rejects unknown renderer before child loading and signing", async () => {
 		database.tables.invitations[0].themes = { renderer_key: "unknown" };
 		await expect(load()).resolves.toBeNull();
-		expect(database.selects).toHaveLength(2);
+		expect(database.selects).toHaveLength(3);
 		expect(mocks.sign).not.toHaveBeenCalled();
 	});
 

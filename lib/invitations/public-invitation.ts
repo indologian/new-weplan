@@ -2,17 +2,16 @@ import "server-only";
 
 import { getThemeRenderer } from "../../themes/registry";
 import { invitationSlugSchema } from "../../validations/invitation";
-import { hashInviteeToken } from "../dashboard/invitee-token";
+import { authorizeInviteeToken } from "../invitee/authorization";
 import { signValidatedPublicInvitationAssets } from "../storage/public-invitation-assets";
-import { createAdminClient } from "../supabase/admin";
+import type { createAdminClient } from "../supabase/admin";
 import {
 	mapPublicInvitationViewModel,
 	mapPublicInvitee,
 } from "./public-view-model";
 
-const publicTokenPattern = /^[A-Za-z0-9_-]{43}$/;
 const invitationColumns =
-	"id,couple_id,slug,status,expires_at,groom_name,groom_father_name,groom_mother_name,groom_photo_path,bride_name,bride_father_name,bride_mother_name,bride_photo_path,cover_photo_path,music_path,opening_greeting,prayer_text,rsvp_enabled,wishes_enabled,themes!inner(renderer_key)";
+	"id,couple_id,slug,groom_name,groom_father_name,groom_mother_name,groom_photo_path,bride_name,bride_father_name,bride_mother_name,bride_photo_path,cover_photo_path,music_path,opening_greeting,prayer_text,rsvp_enabled,wishes_enabled,themes!inner(renderer_key)";
 
 function relation(value: unknown): Record<string, unknown> | null {
 	const item = Array.isArray(value) ? value[0] : value;
@@ -31,62 +30,29 @@ function numberOrNull(value: unknown) {
 	return Number.isFinite(number) ? number : null;
 }
 
-function validLifecycle(row: Record<string, unknown>, now: Date) {
-	if (row.status !== "active" || typeof row.expires_at !== "string")
-		return false;
-	const expiry = new Date(row.expires_at).getTime();
-	return Number.isFinite(expiry) && expiry > now.getTime();
-}
-
 export async function getPublicInvitation(
 	slugInput: unknown,
 	tokenInput: unknown,
 	options: { now?: Date; createClient?: typeof createAdminClient } = {},
 ) {
 	const slug = invitationSlugSchema.safeParse(slugInput);
-	if (
-		!slug.success ||
-		typeof tokenInput !== "string" ||
-		!publicTokenPattern.test(tokenInput)
-	) {
-		return null;
-	}
-	const tokenHash = hashInviteeToken(tokenInput);
-	return loadPublicInvitationByHash(
-		slug.data,
-		tokenHash,
-		options.now ?? new Date(),
-		options.createClient ?? createAdminClient,
-	);
+	if (!slug.success) return null;
+	const authorization = await authorizeInviteeToken(tokenInput, options);
+	if (!authorization || authorization.invitationSlug !== slug.data) return null;
+	return loadPublicInvitation(authorization);
 }
 
-async function loadPublicInvitationByHash(
-	slug: string,
-	tokenHash: string,
-	now: Date,
-	createClient: typeof createAdminClient,
+async function loadPublicInvitation(
+	authorization: NonNullable<Awaited<ReturnType<typeof authorizeInviteeToken>>>,
 ) {
-	const supabase = createClient();
-	const { data: guest, error: guestError } = await supabase
-		.from("invitation_guests")
-		.select("invitation_id,name")
-		.eq("guest_token_hash", tokenHash)
-		.maybeSingle();
-	if (guestError || !guest) return null;
-
+	const { supabase } = authorization;
 	const { data: row, error: invitationError } = await supabase
 		.from("invitations")
 		.select(invitationColumns)
-		.eq("id", guest.invitation_id)
+		.eq("id", authorization.invitationId)
 		.maybeSingle();
-	if (
-		invitationError ||
-		!row ||
-		row.slug !== slug ||
-		!validLifecycle(row, now)
-	) {
+	if (invitationError || !row || row.slug !== authorization.invitationSlug)
 		return null;
-	}
 	const theme = relation(row.themes);
 	const rendererKey = nullableString(theme?.renderer_key);
 	if (!rendererKey || !getThemeRenderer(rendererKey)) return null;
@@ -221,6 +187,6 @@ async function loadPublicInvitationByHash(
 	return {
 		rendererKey,
 		invitation: viewModel,
-		invitee: mapPublicInvitee(String(guest.name)),
+		invitee: mapPublicInvitee(authorization.guestName),
 	};
 }

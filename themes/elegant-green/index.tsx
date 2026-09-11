@@ -25,6 +25,8 @@ export function ElegantGreenTheme({
 	invitation,
 	invitee,
 	onOpen,
+	rsvpInteraction,
+	wishesInteraction,
 }: InvitationThemeProps) {
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -61,9 +63,13 @@ export function ElegantGreenTheme({
 				{invitation.gallery && invitation.gallery.length > 0 && (
 					<Gallery invitation={invitation} />
 				)}
-				{invitation.rsvpEnabled && <Rsvp invitee={invitee} />}
+				{invitation.rsvpEnabled && (
+					<Rsvp invitee={invitee} interaction={rsvpInteraction} />
+				)}
 				<Gift invitation={invitation} />
-				{invitation.wishesEnabled && <Wishes invitation={invitation} />}
+				{invitation.wishesEnabled && (
+					<Wishes invitation={invitation} interaction={wishesInteraction} />
+				)}
 				<Footer invitation={invitation} />
 			</div>
 		</MotionConfig>

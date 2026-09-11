@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { PublicRsvp } from "../../../features/rsvp/public-rsvp";
+import { PublicWishes } from "../../../features/wishes/public-wishes";
 import { getThemeRenderer } from "../../../themes/registry";
 import type {
 	InvitationViewModel,
@@ -21,9 +23,11 @@ export async function playInvitationMusic(
 export function PublicInvitationRenderer({
 	invitation,
 	invitee,
+	guestToken,
 }: {
 	invitation: InvitationViewModel;
 	invitee: InviteeViewModel;
+	guestToken: string;
 }) {
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const Renderer = getThemeRenderer(invitation.theme.rendererKey);
@@ -39,6 +43,8 @@ export function PublicInvitationRenderer({
 			<Renderer
 				invitation={invitation}
 				invitee={invitee}
+				rsvpInteraction={<PublicRsvp guestToken={guestToken} />}
+				wishesInteraction={<PublicWishes guestToken={guestToken} />}
 				onOpen={() => {
 					void playInvitationMusic(audioRef.current);
 				}}

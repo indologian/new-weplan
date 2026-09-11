@@ -14,6 +14,7 @@ export default async function PublicInvitationPage({
 		<PublicInvitationRenderer
 			invitation={result.invitation}
 			invitee={result.invitee}
+			guestToken={guestToken}
 		/>
 	);
 }
