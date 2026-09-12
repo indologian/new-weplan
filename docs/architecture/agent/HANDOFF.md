@@ -101,3 +101,71 @@ None.
 - Keep `lib/invitee/authorization.ts` as the single token/lifecycle authorization primitive for public invitee flows.
 - Existing user-owned changes in `CURRENT-TASK.md` and Task 10–16 documents remain untouched and excluded from this commit.
 - Do not begin Task 17 without explicit authorization.
+
+17 — Payment
+
+## Completed
+
+- Added a native-fetch Midtrans boundary for sandbox/production Snap creation and Transaction Status verification without adding a dependency.
+- Added exact SHA-512 notification verification, lossless IDR amount parsing, deliberate status/fraud mapping, and explicit GMT+7 timestamp parsing.
+- Connected the existing Task 12 `Bayar & Publish` boundary using only `invitationId`; browser callbacks remain UX-only and cannot activate invitations.
+- Added atomic database reservation, idempotent creation-failure compensation, and privileged monotonic payment application functions.
+- Persisted server-resolved theme/tier/price/duration snapshots and retained eligibility for existing inactive referenced catalog records.
+- Added the pending partial unique index while preserving the existing paid partial unique index and historical terminal transactions.
+- Added the public Midtrans notification Route Handler with signature verification, GET Status defense-in-depth, amount verification, minimal responses, and retryable transient failures.
+
+## Files created
+
+- `actions/payments/checkout.ts`
+- `actions/payments/checkout.test.ts`
+- `app/api/payments/midtrans/notification/route.ts`
+- `app/api/payments/midtrans/notification/route.test.ts`
+- `features/payments/midtrans-checkout.tsx`
+- `lib/midtrans/amount.ts`
+- `lib/midtrans/amount.test.ts`
+- `lib/midtrans/client.ts`
+- `lib/midtrans/client.test.ts`
+- `lib/midtrans/config.ts`
+- `lib/midtrans/config.test.ts`
+- `lib/midtrans/signature.ts`
+- `lib/midtrans/signature.test.ts`
+- `lib/midtrans/status.ts`
+- `lib/midtrans/status.test.ts`
+- `supabase/migrations/20260912170000_task17_payment.sql`
+- `supabase/tests/database/17_payment.test.sql`
+- `docs/architecture/database/payment-functions.sql`
+
+## Files changed
+
+- `features/invitation-builder/components/checkout-boundary.tsx`
+- `features/invitation-builder/components/checkout-boundary.test.tsx`
+- `docs/architecture/database/indexes.sql`
+- `docs/architecture/agent/PROJECT-STATE.md`
+- `docs/architecture/agent/HANDOFF.md`
+
+## Database and security validation
+
+- Applied and recorded `20260912170000_task17_payment.sql` on the dedicated remote Supabase development project through the Session Pooler on port 5432.
+- Task 17 pgTAP: 27/27 assertions passed.
+- Existing ownership regression: 17/17 passed; gallery RPC/security regression: 28/28 passed.
+- Verified both pending and paid partial unique indexes, all three `SECURITY DEFINER` functions, empty `search_path`, and narrow grants.
+- Verified anon cannot reserve/compensate, authenticated can only reserve/compensate, and payment application is restricted to `service_role`.
+- Real multi-session validation passed for concurrent reservation, duplicate paid application, and terminal-versus-paid race; assertions used final transaction and invitation lifecycle state.
+
+## Application validation
+
+- Focused Task 17 plus Task 12/14/15/16 regressions: 15 files and 78 tests passed.
+- Full `npm run test`: 73 files and 360 tests passed.
+- `npm run typecheck`, standard lint, targeted read-only Biome, and production build passed.
+- No dependency, lockfile, unrelated schema/RLS/policy, Storage, cleanup, or Task 18 changes.
+
+## Known issues and blockers
+
+- None.
+
+## Notes for next agent
+
+- Configure the Midtrans Dashboard Notification URL to `/api/payments/midtrans/notification` on the deployed application origin and use environment-matched client/server keys.
+- Payment lifecycle is monotonic; refund/chargeback handling and expiration cleanup remain outside Task 17.
+- The user-owned Task 17 control-document synchronization remains intentionally unstaged and uncommitted.
+- Do not begin Task 18 without explicit authorization.

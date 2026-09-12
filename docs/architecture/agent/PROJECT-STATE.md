@@ -18,14 +18,15 @@
 - 14-couple-dashboard: authenticated owner-scoped overview and invitation management, secure guest token CRUD/link recovery, deterministic RSVP summaries, owned Wishes deletion, and reuse of Gifts, interaction settings, builder resume, and private preview boundaries.
 - 15-public-invitation: token-gated public invitation rendering, server-only lifecycle and guest authorization, allowlisted theme resolution, signed private assets, personalized guest presentation, and read-only RSVP/Wishes display.
 - 16-rsvp-wishes: shared token/lifecycle authorization, public RSVP and Wishes APIs, atomic edit-own persistence, lifecycle/config enforcement, safe Wishes presentation, and end-to-end public interaction UI.
+- 17-payment: server-authoritative Midtrans Snap checkout, immutable commercial snapshots, atomic payment reservation/compensation/application RPCs, verified monotonic webhook processing, and invitation lifecycle activation.
 
 ## Current
 
-Task 16 is complete. Task 17 has not been started.
+Task 17 is complete. Task 18 has not been started.
 
 ## Pending
 
-17 through 20-production-hardening.
+18 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -47,6 +48,7 @@ Task 16 is complete. Task 17 has not been started.
 - [x] **14**: Couple Dashboard
 - [x] **15**: Public Invitation
 - [x] **16**: RSVP & Wishes
+- [x] **17**: Payment
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
@@ -71,6 +73,7 @@ None.
 - The standard lint script does not include every Task 12 source directory; all Task 12 implementation files are additionally covered by a read-only targeted Biome check.
 - The standard lint script does not include every Task 13 source directory; all Task 13 application files are additionally covered by a read-only targeted Biome check.
 - The Supabase Security Advisor connector was unavailable to the connected identity during Task 13; bucket, policy, grant, RLS, migration, and effective Storage API behavior were instead verified directly against the dedicated development project.
+- Task 17 remote database validation used a temporary Python PostgreSQL driver outside the repository because local Docker/Supabase and `psql` were unavailable.
 
 ## Environment Constraints
 

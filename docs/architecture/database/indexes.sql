@@ -5,6 +5,10 @@ create unique index if not exists one_paid_transaction_per_invitation
 on public.transactions(invitation_id)
 where status = 'paid' and invitation_id is not null;
 
+create unique index if not exists one_pending_transaction_per_invitation
+on public.transactions(invitation_id)
+where status = 'pending' and invitation_id is not null;
+
 create index if not exists invitations_couple_id_idx on public.invitations(couple_id);
 create index if not exists invitations_theme_id_idx on public.invitations(theme_id);
 create index if not exists invitations_status_idx on public.invitations(status);
