@@ -15,11 +15,23 @@ import { invitationAssetsBucket } from "./invitation-music";
 type StorageBucketClient = ReturnType<StorageSupabaseClient["storage"]["from"]>;
 
 export type AssetCleanupResult = {
-	outcome: "complete" | "already-absent" | "partial-failure";
+	outcome: "complete" | "already-absent" | "incomplete" | "partial-failure";
 	deleted: AuthorizedAssetPath[];
 	alreadyAbsent: AuthorizedAssetPath[];
 	failed: Array<{ path: AuthorizedAssetPath; message: string }>;
+	traversalComplete: boolean;
+	listRequests: number;
 };
+
+export type LifecycleStorageLimits = {
+	maxListRequests: number;
+	maxBulkDeletePaths: number;
+};
+
+export const lifecycleStorageLimits: LifecycleStorageLimits = {
+	maxListRequests: 8,
+	maxBulkDeletePaths: 1000,
+} as const;
 
 function isMissingObjectError(error: unknown) {
 	if (!error || typeof error !== "object") return false;
@@ -34,12 +46,29 @@ function errorMessage(error: unknown) {
 export async function cleanupAuthorizedAssets(
 	storage: StorageBucketClient,
 	paths: AuthorizedAssetPath[],
+	options: {
+		bulk?: boolean;
+		traversalComplete?: boolean;
+		listRequests?: number;
+	} = {},
 ): Promise<AssetCleanupResult> {
 	const deleted: AuthorizedAssetPath[] = [];
 	const alreadyAbsent: AuthorizedAssetPath[] = [];
 	const failed: AssetCleanupResult["failed"] = [];
+	const uniquePaths = [...new Set(paths)];
 
-	for (const path of [...new Set(paths)]) {
+	if (options.bulk && uniquePaths.length > 0) {
+		const { error } = await storage.remove(uniquePaths);
+		if (error) {
+			for (const path of uniquePaths) {
+				failed.push({ path, message: errorMessage(error) });
+			}
+		} else {
+			deleted.push(...uniquePaths);
+		}
+	}
+
+	for (const path of options.bulk ? [] : uniquePaths) {
 		const { data: object, error: infoError } = await storage.info(path);
 		if (infoError || !object) {
 			if (!object && (!infoError || isMissingObjectError(infoError))) {
@@ -60,12 +89,16 @@ export async function cleanupAuthorizedAssets(
 		outcome:
 			failed.length > 0
 				? "partial-failure"
-				: deleted.length === 0
-					? "already-absent"
-					: "complete",
+				: options.traversalComplete === false
+					? "incomplete"
+					: deleted.length === 0
+						? "already-absent"
+						: "complete",
 		deleted,
 		alreadyAbsent,
 		failed,
+		traversalComplete: options.traversalComplete !== false,
+		listRequests: options.listRequests ?? 0,
 	};
 }
 
@@ -74,16 +107,25 @@ const uuidSchema = z.string().uuid();
 async function enumerateInvitationPaths(
 	storage: StorageBucketClient,
 	prefix: string,
+	maxListRequests: number,
+	maxPaths: number,
 ) {
 	const paths: string[] = [];
 	const folders = [prefix.replace(/\/$/, "")];
-	while (folders.length > 0) {
+	let listRequests = 0;
+	let complete = true;
+	while (folders.length > 0 && paths.length < maxPaths) {
 		const folder = folders.shift();
 		if (!folder) continue;
 		let offset = 0;
 		for (;;) {
+			if (listRequests >= maxListRequests || paths.length >= maxPaths) {
+				complete = false;
+				break;
+			}
+			listRequests += 1;
 			const { data, error } = await storage.list(folder, {
-				limit: 100,
+				limit: Math.min(100, maxPaths - paths.length),
 				offset,
 				sortBy: { column: "name", order: "asc" },
 			});
@@ -96,29 +138,38 @@ async function enumerateInvitationPaths(
 			if (data.length < 100) break;
 			offset += data.length;
 		}
+		if (!complete) break;
 	}
-	return paths;
+	if (folders.length > 0) complete = false;
+	return { paths, complete, listRequests };
 }
 
 export async function cleanupTrustedInvitationAssets(
 	coupleId: string,
 	invitationId: string,
+	limits: LifecycleStorageLimits = lifecycleStorageLimits,
 ) {
 	const owner = uuidSchema.parse(coupleId);
 	const invitation = uuidSchema.parse(invitationId);
 	const admin = createAdminClient();
 	const storage = admin.storage.from(invitationAssetsBucket);
-	const rawPaths = await enumerateInvitationPaths(
+	const enumeration = await enumerateInvitationPaths(
 		storage,
 		`${owner}/${invitation}/`,
+		limits.maxListRequests,
+		limits.maxBulkDeletePaths,
 	);
-	const paths = rawPaths.map((path) =>
+	const paths = enumeration.paths.map((path) =>
 		authorizeCanonicalAssetPath(
 			{ userId: owner, invitationId: invitation },
 			path,
 		),
 	);
-	return cleanupAuthorizedAssets(storage, paths);
+	return cleanupAuthorizedAssets(storage, paths, {
+		bulk: true,
+		traversalComplete: enumeration.complete,
+		listRequests: enumeration.listRequests,
+	});
 }
 
 export async function cleanupOwnedInvitationAssets(invitationId: unknown) {

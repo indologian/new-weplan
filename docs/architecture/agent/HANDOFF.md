@@ -233,3 +233,87 @@ None.
 - Tier identity/code and historical transaction snapshots remain immutable through Task 18 actions.
 - Existing user-owned changes in CURRENT-TASK and Task 17/18 documents remain untouched and excluded from the Task 18 commit.
 - Do not begin Task 19 without explicit authorization.
+
+19 — Lifecycle & Deployment
+
+## Completed
+
+- Added one bounded shared lifecycle service for conditional `active → expired` synchronization and delete-ready expired invitations.
+- Enforced Storage-before-database deletion with canonical Task 13 cleanup reuse, explicit incomplete traversal, partial-failure retention, and retry-safe stale/already-absent outcomes.
+- Added explicit owner-authorized permanent-delete server action reuse without dashboard UI, refunds, transaction mutation, or transaction deletion.
+- Added fail-closed Bearer authorization for `POST /api/cron/cleanup-expired` and minimal public responses.
+- Added a custom Cloudflare Worker entry that preserves vinext fetch handling and awaits the same lifecycle service from native `scheduled()`.
+- Added the daily `0 19 * * *` Cron Trigger, `nodejs_compat`, required-secret declarations, and free-compatible native logging.
+- Initialized the approved vinext dependency/configuration set and isolated deployment plugins from Vitest `test` mode to prevent RSC transforms from replacing server actions in unit tests.
+
+## Lifecycle limits and safety
+
+- Expiry batch: 50, ordered by `expires_at ASC, id ASC`.
+- Deletion batch: 3, ordered by `delete_after ASC, id ASC`.
+- Storage traversal: at most 8 list requests per invitation per run.
+- Bulk removal: at most 1000 discovered canonical paths; incomplete traversal retains the database row.
+- Automatic deletion repeats the persisted status/time predicates; manual deletion repeats owner predicates.
+- Child rows use existing cascades, while historical transactions survive through existing `ON DELETE SET NULL`.
+
+## Files created
+
+- `actions/invitations/delete.ts`
+- `actions/invitations/delete-service.ts`
+- `actions/invitations/delete.test.ts`
+- `app/api/cron/cleanup-expired/route.ts`
+- `app/api/cron/cleanup-expired/route.test.ts`
+- `lib/lifecycle/cron-authorization.ts`
+- `lib/lifecycle/cron-authorization.test.ts`
+- `lib/lifecycle/invitation-lifecycle.ts`
+- `lib/lifecycle/invitation-lifecycle.test.ts`
+- `vite.config.ts`
+- `worker/index.ts`
+- `wrangler.jsonc`
+
+## Files changed
+
+- `.gitignore`
+- `package.json`
+- `package-lock.json`
+- `lib/storage/cleanup.ts`
+- `lib/storage/cleanup.test.ts`
+- `docs/architecture/deployment/CLOUDFLARE-SUPABASE.md`
+- `docs/architecture/agent/PROJECT-STATE.md`
+- `docs/architecture/agent/HANDOFF.md`
+
+## Dependencies and configuration
+
+- Added approved runtime dependencies: `vinext@1.0.0-beta.9`, `@vinext/cloudflare@1.0.0-beta.7`, and `react-server-dom-webpack@19.2.8`.
+- Added approved dev dependencies: `vite@8.3.0`, `@vitejs/plugin-react@6.1.1`, `@vitejs/plugin-rsc@0.5.34`, `@cloudflare/vite-plugin@1.54.8`, and `wrangler@4.131.1`.
+- Project install-script policy allows only `esbuild@0.28.1` and `workerd@1.20260911.1`; `fsevents@2.3.3` remains explicitly denied.
+- Next.js remains `16.3.4`; React and React DOM remain `19.2.8`.
+- No schema, migration, RLS, policy, grant, RPC, or payment timestamp changes.
+
+## Validation
+
+- Focused Task 19: 5 files, 25 tests passed.
+- Full suite: 86 files, 402 tests passed.
+- Typecheck, standard lint, targeted read-only Biome, and Next.js production build passed.
+- `vinext check`: 97% compatible, 17 supported, 1 partial (`reactStrictMode` static-analysis warning), 0 issues.
+- Vinext production build and Wrangler dry-run passed; upload size was about 1.96 MiB / 552 KiB gzip.
+- Local workerd started successfully; home/login, auth redirect, malformed RSVP/webhook boundaries, authorized/unauthorized cron HTTP boundaries, and token-hash lookup produced controlled responses.
+- Native scheduled endpoint returned `outcome: ok` and emitted a structured lifecycle result in about 1 second with the approved caps and no Free-tier warning.
+- Dedicated remote development DB validation passed for conditional/repeated expiry, grace retention, child cascade, transaction `ON DELETE SET NULL`, immutable transaction snapshots, paid revenue retention, and real two-session conditional lifecycle competition.
+- Credential scan, client-bundle secret-name scan, dependency/install-script review, and schema/RLS/migration scope review passed.
+
+## External deployment steps
+
+- A version-preview upload was attempted without production promotion. Cloudflare rejected creation because the existing Worker lacks `INVITEE_TOKEN_ENCRYPTION_KEY` and `MIDTRANS_IS_PRODUCTION`; no production deployment was performed.
+- Configure all required encrypted Worker secrets, then create a preview version and execute the full remote smoke matrix before production promotion.
+- Configure external Supabase Auth/OAuth URLs, Midtrans Notification URL, domains, and environment-specific browser values per the deployment checklist.
+- Production CPU/Free-tier behavior still requires deployed observation; local workerd provides functional evidence, not exact production CPU accounting.
+
+## Blockers
+
+None for Task 19 completion. Cloudflare preview smoke is an explicitly documented external operator limitation.
+
+## Notes for next agent
+
+- Keep `lib/lifecycle/invitation-lifecycle.ts` as the shared cron/manual orchestration boundary and `lib/storage/cleanup.ts` as the single invitation Storage cleanup implementation.
+- The official Task 19 document is a user-owned dirty file and remains intentionally unstaged/uncommitted.
+- Do not begin Task 20 without explicit authorization.

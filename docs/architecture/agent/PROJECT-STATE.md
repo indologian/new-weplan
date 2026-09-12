@@ -20,14 +20,15 @@
 - 16-rsvp-wishes: shared token/lifecycle authorization, public RSVP and Wishes APIs, atomic edit-own persistence, lifecycle/config enforcement, safe Wishes presentation, and end-to-end public interaction UI.
 - 17-payment: server-authoritative Midtrans Snap checkout, immutable commercial snapshots, atomic payment reservation/compensation/application RPCs, verified monotonic webhook processing, and invitation lifecycle activation.
 - 18-admin: server-authorized Admin Dashboard, exact paid-snapshot revenue metrics, bounded transaction/active-invitation visibility, non-destructive theme management, tier configuration, and homepage visibility toggles.
+- 19-cron-lifecycle: bounded invitation expiry and Storage-first hard deletion, retry-safe manual/HTTP/native-scheduled entrypoints, retained transaction history, and validated vinext Cloudflare Workers configuration.
 
 ## Current
 
-Task 18 is complete. Task 19 has not been started.
+Task 19 is complete. Task 20 has not been started.
 
 ## Pending
 
-19 through 20-production-hardening.
+20-production-hardening.
 
 ## Architecture invariants
 
@@ -51,6 +52,7 @@ Task 18 is complete. Task 19 has not been started.
 - [x] **16**: RSVP & Wishes
 - [x] **17**: Payment
 - [x] **18**: Admin Dashboard
+- [x] **19**: Lifecycle & Deployment
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery
@@ -76,6 +78,8 @@ None.
 - The standard lint script does not include every Task 13 source directory; all Task 13 application files are additionally covered by a read-only targeted Biome check.
 - The Supabase Security Advisor connector was unavailable to the connected identity during Task 13; bucket, policy, grant, RLS, migration, and effective Storage API behavior were instead verified directly against the dedicated development project.
 - Task 17 remote database validation used a temporary Python PostgreSQL driver outside the repository because local Docker/Supabase and `psql` were unavailable.
+- Task 19 Cloudflare version preview upload was attempted but not created because the existing remote Worker lacks `INVITEE_TOKEN_ENCRYPTION_KEY` and `MIDTRANS_IS_PRODUCTION`; production deployment and remote preview smoke remain operator steps.
+- Vinext 1.0.0-beta.9 reports 97% compatibility; `reactStrictMode` remains a documented partial static-analysis result, while the App Router is unaffected by the Pages Router-specific warning.
 
 ## Environment Constraints
 

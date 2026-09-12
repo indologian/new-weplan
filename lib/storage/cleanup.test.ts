@@ -128,4 +128,31 @@ describe("canonical asset cleanup", () => {
 		expect(storage.list).toHaveBeenCalledTimes(2);
 		expect(storage.remove).toHaveBeenCalledWith([objectPath]);
 	});
+
+	it("marks bounded traversal incomplete without deleting the invitation context", async () => {
+		const storage = {
+			list: vi.fn(async () => ({
+				data: [{ id: null, name: "nested" }],
+				error: null,
+			})),
+			remove: vi.fn(async () => ({ data: [], error: null })),
+		};
+		mocks.createAdminClient.mockReturnValue({
+			storage: { from: () => storage },
+		});
+
+		const result = await cleanupTrustedInvitationAssets(
+			context.userId,
+			context.invitationId,
+			{ maxListRequests: 1, maxBulkDeletePaths: 1000 },
+		);
+
+		expect(result).toMatchObject({
+			outcome: "incomplete",
+			traversalComplete: false,
+			listRequests: 1,
+		});
+		expect(storage.list).toHaveBeenCalledTimes(1);
+		expect(storage.remove).not.toHaveBeenCalled();
+	});
 });
