@@ -19,14 +19,15 @@
 - 15-public-invitation: token-gated public invitation rendering, server-only lifecycle and guest authorization, allowlisted theme resolution, signed private assets, personalized guest presentation, and read-only RSVP/Wishes display.
 - 16-rsvp-wishes: shared token/lifecycle authorization, public RSVP and Wishes APIs, atomic edit-own persistence, lifecycle/config enforcement, safe Wishes presentation, and end-to-end public interaction UI.
 - 17-payment: server-authoritative Midtrans Snap checkout, immutable commercial snapshots, atomic payment reservation/compensation/application RPCs, verified monotonic webhook processing, and invitation lifecycle activation.
+- 18-admin: server-authorized Admin Dashboard, exact paid-snapshot revenue metrics, bounded transaction/active-invitation visibility, non-destructive theme management, tier configuration, and homepage visibility toggles.
 
 ## Current
 
-Task 17 is complete. Task 18 has not been started.
+Task 18 is complete. Task 19 has not been started.
 
 ## Pending
 
-18 through 20-production-hardening.
+19 through 20-production-hardening.
 
 ## Architecture invariants
 
@@ -49,6 +50,7 @@ Task 17 is complete. Task 18 has not been started.
 - [x] **15**: Public Invitation
 - [x] **16**: RSVP & Wishes
 - [x] **17**: Payment
+- [x] **18**: Admin Dashboard
 - Supabase with RLS
 - private invitation asset bucket
 - invitee token hash for lookup + encrypted token for dashboard recovery

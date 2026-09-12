@@ -169,3 +169,67 @@ None.
 - Payment lifecycle is monotonic; refund/chargeback handling and expiration cleanup remain outside Task 17.
 - The user-owned Task 17 control-document synchronization remains intentionally unstaged and uncommitted.
 - Do not begin Task 18 without explicit authorization.
+
+18 — Admin
+
+## Completed
+
+- Expanded the existing server-gated admin dashboard into Overview, Transactions, Active Invitations, Themes, Tiers, and Homepage Visibility sections.
+- Reused `requireAdminProfile()` for route and independent mutation authorization; browser role values have no authority.
+- Added the narrowly scoped read-only `get_admin_overview_metrics()` RPC for exact paid-snapshot revenue and approved operational counts.
+- Added bounded, deterministic, read-only transaction and active-invitation queries.
+- Added strict theme metadata create/update/disable actions with source-code renderer registry validation and no destructive delete action.
+- Added strict tier price/duration/media-limit/active-state updates without code mutation or historical snapshot rewrite.
+- Added homepage listing and visibility-only mutation for configured sections; navbar and arbitrary CMS fields are rejected.
+
+## Database
+
+- Migration: `supabase/migrations/20260912112129_task18_admin_overview.sql`.
+- RPC is `STABLE SECURITY DEFINER`, uses empty `search_path`, obtains `auth.uid()`, explicitly verifies `profiles.role = 'admin'`, and performs no mutation.
+- Function execution is revoked from PUBLIC/anon and granted to authenticated; couple execution is rejected by the internal role check.
+- Revenue is `SUM(transactions.price_snapshot) FILTER (WHERE status='paid')`; current tier prices and invitation status are not revenue inputs.
+- No table, constraint, RLS policy, payment state, or invitation lifecycle changes.
+
+## Files created
+
+- `actions/admin/context.ts` and its focused test
+- `actions/admin/overview.ts` and its focused test
+- `actions/admin/transactions.ts` and its focused test
+- `actions/admin/invitations.ts` and its focused test
+- `actions/admin/themes.ts` and its focused test
+- `actions/admin/tiers.ts` and its focused test
+- `actions/admin/homepage.ts` and its focused test
+- `validations/admin.ts` and `validations/admin.test.ts`
+- Admin feature components under `features/admin/**`
+- Admin section pages and layout test under `app/dashboard/admin/**`
+- `docs/architecture/database/admin-overview-functions.sql`
+- `supabase/migrations/20260912112129_task18_admin_overview.sql`
+- `supabase/tests/database/18_admin_overview.test.sql`
+
+## Files changed
+
+- `app/dashboard/admin/layout.tsx`
+- `app/dashboard/admin/page.tsx`
+- `docs/architecture/agent/PROJECT-STATE.md`
+- `docs/architecture/agent/HANDOFF.md`
+
+## Validation
+
+- Remote Task 18 pgTAP: 14/14 assertions passed.
+- Remote Task 17 payment regression: 27/27 passed; ownership regression: 17/17 passed.
+- Verified RPC return contract, STABLE/SECURITY DEFINER mode, empty search path, migration record, and effective grants.
+- Focused Task 18 plus Task 17/14/registry regressions: 17 files and 54 tests passed.
+- Full `npm run test`: 82 files and 382 tests passed.
+- Typecheck, standard lint, targeted read-only Biome, and production build passed.
+- Dependency, credential, schema/RLS, payment/lifecycle, and Task 19 scope reviews passed.
+
+## Known issues and blockers
+
+- None.
+
+## Notes for next agent
+
+- Transaction and invitation lifecycle remain read-only to Admin; Task 17 is still the only payment authority.
+- Tier identity/code and historical transaction snapshots remain immutable through Task 18 actions.
+- Existing user-owned changes in CURRENT-TASK and Task 17/18 documents remain untouched and excluded from the Task 18 commit.
+- Do not begin Task 19 without explicit authorization.

@@ -1,0 +1,12 @@
+-- Read-only aggregate metrics for the authenticated Admin Dashboard.
+-- Executable source: supabase/migrations/20260912112129_task18_admin_overview.sql
+
+-- Signature: public.get_admin_overview_metrics()
+-- Returns only total paid snapshot revenue, paid/pending/terminal transaction
+-- counts, and active invitation count. Revenue is derived exclusively from
+-- paid transactions.price_snapshot and never current tier prices.
+--
+-- The function obtains auth.uid(), verifies profiles.role = 'admin', performs
+-- no mutation, and is STABLE SECURITY DEFINER with an empty search_path and
+-- fully qualified relations. Execution is revoked from PUBLIC/anon and granted
+-- only to authenticated callers, with the explicit role check as authorization.
