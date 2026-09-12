@@ -38,6 +38,8 @@ Do not read unrelated reference documents or unrelated database tables.
 - `supabase/migrations/**`
 - `supabase/tests/database/**`
 - `docs/architecture/database/**` only for approved payment-function/constraint documentation
+- `features/invitation-builder/components/checkout-boundary.tsx`
+- `features/invitation-builder/components/checkout-boundary.test.tsx`
 - `docs/architecture/agent/PROJECT-STATE.md`
 - `docs/architecture/agent/HANDOFF.md`
 
@@ -483,6 +485,28 @@ Do not log:
 - paid transaction duplicate checkout rejected
 - snapshot correctness
 - concurrent checkout race test
+
+## Existing Invitation Theme/Tier Availability
+
+For Task 17, `themes.is_active` and `tiers.is_active` control catalog availability for new selection only.
+
+A `draft` invitation that already references a persisted theme/tier remains eligible for checkout even if the referenced theme or tier is later set to `is_active = false`, provided that:
+
+- the invitation is otherwise checkout-eligible;
+- the referenced theme row still exists;
+- the referenced tier row still exists;
+- the persisted theme → tier relationship remains valid.
+
+The checkout reservation must resolve commercial values from the invitation's persisted referenced theme/tier without requiring:
+
+- `themes.is_active = true`;
+- `tiers.is_active = true`.
+
+Checkout must still fail safely if the referenced theme/tier relationship is missing or invalid.
+
+Each new checkout reservation creates a fresh immutable transaction snapshot using the current persisted commercial values of the referenced theme/tier at reservation time.
+
+This rule does not introduce renewal semantics.
 
 ### Midtrans
 
